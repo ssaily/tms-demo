@@ -1,5 +1,0 @@
-# With SSL configured
-spring:
-    application:
-      name: tms-example-test
-      
