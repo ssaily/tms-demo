@@ -37,10 +37,8 @@ public class StreamsTopology {
 
     @Bean    
     public static Topology kafkaStreamTopology(
-        @Value("${spring.application.schema-registry}") String schemaRegistryUrl,
-        @Value("${spring.application.schema-registry-user}") String schemaRegistryUser) {
-    
-        logger.info("Schema Registry: {} user {}", schemaRegistryUrl, schemaRegistryUser);
+        @Value("${spring.application.schema-registry}") String schemaRegistryUrl) {
+            
         final StreamsBuilder streamsBuilder = new StreamsBuilder();
         Map<String, String> serdeConfig = new HashMap<>();
         serdeConfig.put("schema.registry.url", schemaRegistryUrl);

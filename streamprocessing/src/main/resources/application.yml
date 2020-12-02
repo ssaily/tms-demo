@@ -2,8 +2,7 @@
 spring:
     application:
       name: tms-streams-demo
-      schema-registry: ${SCHEMA_REGISTRY}
-      schema-registry-user: ${schema-registry-user}
+      schema-registry: ${SCHEMA_REGISTRY}      
     kafka:
       bootstrap-servers: ${BOOTSTRAP_SERVERS}      
       ssl:

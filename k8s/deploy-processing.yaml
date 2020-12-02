@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tms-demo-deployment
+  name: tms-demo-processing
   namespace: tms-demo
   labels:
     app: tms-demo
@@ -17,7 +17,7 @@ spec:
     spec:
       containers:      
       - name: tms-demo
-        image: ssaily/tms-demo-processing:latest        
+        image: ssaily/tms-demo-processing:0.0.1        
         envFrom:
           - secretRef:
               name: kafka-secrets        

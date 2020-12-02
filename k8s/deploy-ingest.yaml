@@ -25,9 +25,7 @@ spec:
             value: digitrafficPassword
           - name: PYTHONUNBUFFERED
             value: "1"
-        envFrom:
-          - secretRef:
-              name: kafka-secrets        
+        envFrom:          
           - secretRef: 
               name: tms-service-endpoint
         volumeMounts:
