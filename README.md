@@ -6,6 +6,7 @@ Prerequisite
 - Terraform (https://learn.hashicorp.com/tutorials/terraform/install-cli)
 - k8s cluster and kubectl command line tool
 - jq command line tool (https://stedolan.github.io/jq/download/)
+- kafkacat tool (https://github.com/edenhill/kafkacat)
 
 ## Infrastructure
 ```
@@ -30,12 +31,19 @@ kubectl apply -f namespace.yaml
 
 
 ### Secrets
-````
+```
 ./init-secrets.sh
-````
+```
 
 ### Deployments
-````
+```
 kubectl apply -f deploy-ingest.yaml
 kubectl apply -f deploy-processing.yaml
 kubectl apply -f deploy-sink.yaml
+```
+
+### Produce weather station metadata
+```
+cd producer
+./import-stations.sh
+```
