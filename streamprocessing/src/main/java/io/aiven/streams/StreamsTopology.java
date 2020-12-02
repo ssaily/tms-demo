@@ -1,8 +1,6 @@
 package io.aiven.streams;
 
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -18,11 +16,9 @@ import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Produced;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
-import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import fi.saily.tmsdemo.DigitrafficMessage;
 
 @Component

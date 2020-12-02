@@ -84,7 +84,7 @@ class StreamsApplicationTests {
             "\"fiberresponsebig1\", \"shortName\": \"KVaS1 \", \"sensorValue\": 0.0, \"sensorUnit\": \"###\", " +
             "\"measuredTime\": \"2020-12-02T20:42:00Z\"}");
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            
         }
             
         inputTopic.pipeInput("12016", jsonObj);
