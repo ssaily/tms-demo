@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tms-demo-sink
+  namespace: tms-demo
+  labels:
+    app: tms-demo-sink
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tms-demo-sink
+  template:
+    metadata:
+      labels:
+        app: tms-demo-sink
+    spec:
+      containers:      
+      - name: tms-demo-sink
+        image: ssaily/tms-demo-sink:0.0.2
+        env:          
+          - name: PYTHONUNBUFFERED
+            value: "1"
+        envFrom:
+          - secretRef:
+              name: kafka-secrets        
+          - secretRef: 
+              name: tms-service-endpoint
+        volumeMounts:
+        - mountPath: /etc/streams/tms-service-cert
+          name: tms-service-cert
+        resources:
+          limits:
+            memory: 512Mi
+            cpu: "1"
+          requests:
+            memory: 256Mi
+            cpu: "100m"
+        imagePullPolicy: Always
+      volumes:
+        - name: tms-service-cert
+          secret:
+            secretName: tms-service-cert
+            items:
+            - key: service.cert
+              path: service.cert
+            - key: service.key
+              path: service.key
+            - key: ca.pem
+              path: ca.pem

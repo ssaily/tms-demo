@@ -1,0 +1,36 @@
+{
+    "name": "DigitrafficMessage",
+    "namespace": "fi.saily.tmsdemo",
+    "type": "record",
+    "fields" : [
+        {
+            "name": "id",
+            "type": "long"
+        },
+        {
+            "name": "roadStationId",
+            "type": "long"
+        },
+        {
+            "name": "name",
+            "type": "string"
+        },
+        {
+            "name": "sensorValue",
+            "type": "double"
+        },        
+        {
+            "name": "sensorUnit",
+            "type": "string"
+        },
+        {
+            "name": "measuredTime",
+            "type": "long"
+        },
+        {
+            "name": "municipality",
+            "type": "string",
+            "default": ""
+        }
+    ]
+}

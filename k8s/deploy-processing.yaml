@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tms-demo-deployment
+  namespace: tms-demo
+  labels:
+    app: tms-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tms-demo
+  template:
+    metadata:
+      labels:
+        app: tms-demo
+    spec:
+      containers:      
+      - name: tms-demo
+        image: ssaily/tms-demo-processing:latest        
+        envFrom:
+          - secretRef:
+              name: kafka-secrets        
+          - secretRef: 
+              name: tms-service-endpoint
+        volumeMounts:
+        - mountPath: /etc/streams/tms-service-cert
+          name: tms-service-cert
+        resources:
+          limits:
+            memory: 512Mi
+            cpu: "1"
+          requests:
+            memory: 256Mi
+            cpu: "100m"
+        imagePullPolicy: Always
+      volumes:
+        - name: tms-service-cert
+          secret:
+            secretName: tms-service-cert
+            items:
+            - key: client.keystore.p12
+              path: client.keystore.p12
+            - key: client.truststore.jks
+              path: client.truststore.jks
