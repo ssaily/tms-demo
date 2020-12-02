@@ -10,6 +10,7 @@ version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '14'
 
 repositories {
+	jcenter()
 	mavenCentral()
 	maven {
         url "https://packages.confluent.io/maven/"
@@ -23,6 +24,11 @@ dependencies {
 	implementation 'org.apache.kafka:kafka-streams:2.6.0'
 	implementation 'io.confluent:kafka-streams-avro-serde:5.5.1'
 	implementation 'org.influxdb:influxdb-java:2.20'
+	testCompile 'org.mockito:mockito-core:2.21.0'
+	testCompile 'org.mockito:mockito-junit-jupiter:2.23.0'
+	testImplementation 'org.hamcrest:hamcrest:2.2'
+	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
 	testImplementation('org.springframework.boot:spring-boot-starter-test') {
 		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
 	}

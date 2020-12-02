@@ -6,8 +6,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.JsonNodeCreator;
 
+import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -36,16 +36,10 @@ public class StreamsTopology {
     }
 
     @Bean    
-    public static Topology kafkaStreamTopology(
-        @Value("${spring.application.schema-registry}") String schemaRegistryUrl) {
+    public static Topology kafkaStreamTopology(Serde<DigitrafficMessage> valueSerde) {
             
         final StreamsBuilder streamsBuilder = new StreamsBuilder();
-        Map<String, String> serdeConfig = new HashMap<>();
-        serdeConfig.put("schema.registry.url", schemaRegistryUrl);
-        serdeConfig.put("basic.auth.credentials.source", "URL");
-        
-        final SpecificAvroSerde<DigitrafficMessage> valueSerde = new SpecificAvroSerde<>();
-        valueSerde.configure(serdeConfig, false);        
+                
         
         KStream<String, JsonNode> jsonWeatherStream = streamsBuilder.stream("observations.weather.raw");
         jsonWeatherStream        

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsConfig;
@@ -17,13 +18,30 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerde;
 
+import fi.saily.tmsdemo.DigitrafficMessage;
+import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
+
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 @Configuration
 public class KafkaStreamsConfig {
     @Autowired
     private ApplicationContext appContext;
-  
+    private final Serde<DigitrafficMessage> valueSerde;
+
+    public KafkaStreamsConfig(@Value("${spring.application.schema-registry}") String schemaRegistryUrl) {
+        // schema registry
+        Map<String, String> serdeConfig = new HashMap<>();
+        serdeConfig.put("schema.registry.url", schemaRegistryUrl);
+        serdeConfig.put("basic.auth.credentials.source", "URL");
+        
+        valueSerde = new SpecificAvroSerde<>();
+        valueSerde.configure(serdeConfig, false);
+
+    }
+
     @Bean
     public KafkaStreams kafkaStreams(KafkaProperties kafkaProperties,
                                      @Value("${spring.application.name}") String appName) {
@@ -32,10 +50,7 @@ public class KafkaStreamsConfig {
         // inject SSL related properties
         props.putAll(kafkaProperties.getSsl().buildProperties());
         props.putAll(kafkaProperties.getProperties());
-
-        // schema registry
         
-
         // common client configurations
         props.put(CommonClientConfigs.CLIENT_DNS_LOOKUP_CONFIG, "use_all_dns_ips");        
         
@@ -57,6 +72,11 @@ public class KafkaStreamsConfig {
         kafkaStreams.start();
 
         return kafkaStreams;
+    }
+
+    @Bean
+    public Serde<DigitrafficMessage> digitrafficSerde() {
+        return valueSerde;
     }
 
 }

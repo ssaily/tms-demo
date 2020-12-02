@@ -2,4 +2,4 @@
 spring:
     application:
       name: tms-example-test
-      
+      schema-registry:
