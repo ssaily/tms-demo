@@ -7,7 +7,8 @@ import requests
 
 import os
 
-influxdb_client = os.getenv("M3_INFLUXDB_URL")
+influxdb_client = os.getenv("M3_INFLUXDB_URL").rstrip()
+influxdb_cred = os.getenv("M3_INFLUXDB_CREDENTIALS").rstrip()
 group_name = "tms-demo-m3-sink"
 schema_registry = CachedSchemaRegistryClient(os.getenv("SCHEMA_REGISTRY"))
 avro_serde = AvroSerde(schema_registry)
@@ -29,9 +30,11 @@ def to_buffer(buffer: list, message):
 
 def flush_buffer(buffer: list):
     print(f"Flushing {len(buffer)} records to M3")
-    payload = str("\n".join(buffer))                                        
-    response = requests.post(influxdb_client, data=payload, headers={'Content-Type': 'application/x-www-form-urlencoded'})                                        
-    if response.status_code != 204:
+    payload = str("\n".join(buffer))    
+    response = requests.post(influxdb_client, data=payload, 
+    auth=(influxdb_cred.split(":")[0],influxdb_cred.split(":")[1]), 
+    headers={'Content-Type': 'application/x-www-form-urlencoded'})                                        
+    if response.status_code != 204:        
         print(f"Failed to store to M3 {response.status_code}\n{response.text}")
         return False
     

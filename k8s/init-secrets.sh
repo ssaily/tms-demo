@@ -10,5 +10,6 @@ kubectl create secret generic tms-service-endpoint \
 --from-file=BOOTSTRAP_SERVERS=../tms-secrets/kafka_service_uri \
 --from-file=SCHEMA_REGISTRY=../tms-secrets/schema_registry_uri \
 --from-file=M3_INFLUXDB_URL=../tms-secrets/influxdb_uri \
+--from-file=M3_INFLUXDB_CREDENTIALS=../tms-secrets/influxdb_credentials \
 -n tms-demo
 kubectl apply -f secrets.yaml
