@@ -86,9 +86,9 @@ public class StreamsTopology {
             .setMeasuredTime(Instant.parse(time.get().asText()).toEpochMilli())
             .setSensorUnit(unit.get().asText())
             .build();
-            return new KeyValue<>(stationId.get().asText(), msg);
+            return KeyValue.pair(stationId.get().asText(), msg);
         } else {
-            return new KeyValue<>("", null);
+            return KeyValue.pair("", null);
         }
 
     }
