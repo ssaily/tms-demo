@@ -21,6 +21,8 @@ import org.springframework.stereotype.Component;
 
 import fi.saily.tmsdemo.DigitrafficMessage;
 
+import org.apache.commons.text.StringEscapeUtils;
+
 @Component
 public class StreamsTopology {
     private static Logger logger = LoggerFactory.getLogger(StreamsTopology.class);        
@@ -53,7 +55,9 @@ public class StreamsTopology {
         .filter((k, v) -> !k.isBlank())
         .join(stationTable, (measurement, station) -> 
             DigitrafficMessage.newBuilder(measurement)
-            .setMunicipality(station.get("municipality").asText()).build())        
+            .setMunicipality(
+                StringEscapeUtils.unescapeJava(station.get("municipality").asText()))
+                .build())        
         .to("observations.weather.municipality", Produced.with(Serdes.String(), valueSerde));        
                            
         return streamsBuilder.build();

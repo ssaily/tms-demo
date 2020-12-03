@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'io.aiven'
-version = '0.0.1-SNAPSHOT'
+version = '0.0.2-SNAPSHOT'
 sourceCompatibility = '14'
 
 repositories {
@@ -18,8 +18,9 @@ repositories {
 }
 
 dependencies {
-	compile group: 'org.springframework.kafka', name: 'spring-kafka', version: '2.6.0'
-	compile "org.apache.avro:avro:1.9.2"
+	compile 'org.springframework.kafka:spring-kafka:2.6.0'
+	compile 'org.apache.avro:avro:1.9.2'
+	compile 'org.apache.commons:commons-text:1.9'
 	implementation 'org.springframework.boot:spring-boot-starter'
 	implementation 'org.apache.kafka:kafka-streams:2.6.0'
 	implementation 'io.confluent:kafka-streams-avro-serde:5.5.1'
