@@ -1,7 +1,7 @@
 # Data pipeline using Kafka and M3DB
 
 Prerequisite
-- Active Aiven account and project
+- Active Aiven account and project (https://aiven.io/)
 - Aiven CLI (https://github.com/aiven/aiven-client)
 - Terraform (https://learn.hashicorp.com/tutorials/terraform/install-cli)
 - k8s cluster and kubectl command line tool
