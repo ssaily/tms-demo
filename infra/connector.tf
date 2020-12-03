@@ -30,9 +30,7 @@ resource "aiven_kafka_connector" "kafka-pg-cdc" {
   connector_name = "kafka-pg-cdc"
 
   config = {  
-    "key.converter": "io.confluent.connect.avro.AvroConverter",
-    "key.converter.schema.registry.url": local.schema_registry_uri,
-    "key.converter.basic.auth.credentials.source": "URL",
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
     "key.converter.schemas.enable": "true",
     "value.converter": "io.confluent.connect.avro.AvroConverter",
     "value.converter.schema.registry.url": local.schema_registry_uri,
@@ -48,6 +46,14 @@ resource "aiven_kafka_connector" "kafka-pg-cdc" {
     "database.server.name": "tms-demo-pg",
     "table.whitelist": "public.weather_stations",
     "plugin.name": "wal2json",
-    "database.sslmode": "require"
+    "database.sslmode": "require",
+    "transforms": "unwrap,insertKey,extractKey",
+    "transforms.unwrap.type":"io.debezium.transforms.UnwrapFromEnvelope",
+    "transforms.unwrap.drop.tombstones":"false",
+    "transforms.insertKey.type":"org.apache.kafka.connect.transforms.ValueToKey",
+    "transforms.insertKey.fields":"roadStationId",
+    "transforms.extractKey.type":"org.apache.kafka.connect.transforms.ExtractField$Key",
+    "transforms.extractKey.field":"roadStationId",
+    "include.schema.changes": "false"
   }
 }
