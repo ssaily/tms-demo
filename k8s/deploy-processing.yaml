@@ -17,7 +17,7 @@ spec:
     spec:
       containers:      
       - name: tms-demo
-        image: ssaily/tms-demo-processing:0.0.2        
+        image: ssaily/tms-demo-processing:0.1.0        
         envFrom:
           - secretRef:
               name: kafka-secrets        

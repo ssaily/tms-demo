@@ -2,6 +2,7 @@ package io.aiven.streams;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.Serde;
@@ -19,6 +20,7 @@ import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerde;
 
 import fi.saily.tmsdemo.DigitrafficMessage;
+import io.confluent.kafka.streams.serdes.avro.GenericAvroSerde;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 
 import java.util.HashMap;
@@ -29,7 +31,8 @@ import java.util.Properties;
 public class KafkaStreamsConfig {
     @Autowired
     private ApplicationContext appContext;
-    private final Serde<DigitrafficMessage> valueSerde;
+    private final Serde<DigitrafficMessage> valueSerde = new SpecificAvroSerde<>();
+    private final Serde<GenericRecord> genericValueSerde = new GenericAvroSerde();
 
     public KafkaStreamsConfig(@Value("${spring.application.schema-registry}") String schemaRegistryUrl) {
         // schema registry
@@ -37,8 +40,8 @@ public class KafkaStreamsConfig {
         serdeConfig.put("schema.registry.url", schemaRegistryUrl);
         serdeConfig.put("basic.auth.credentials.source", "URL");
         
-        valueSerde = new SpecificAvroSerde<>();
         valueSerde.configure(serdeConfig, false);
+        genericValueSerde.configure(serdeConfig, false);
 
     }
 
@@ -77,6 +80,11 @@ public class KafkaStreamsConfig {
     @Bean
     public Serde<DigitrafficMessage> digitrafficSerde() {
         return valueSerde;
+    }
+
+    @Bean
+    public Serde<GenericRecord> genericSerde() {
+        return genericValueSerde;
     }
 
 }

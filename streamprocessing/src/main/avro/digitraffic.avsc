@@ -5,11 +5,11 @@
     "fields" : [
         {
             "name": "id",
-            "type": "long"
+            "type": "int"
         },
         {
             "name": "roadStationId",
-            "type": "long"
+            "type": "int"
         },
         {
             "name": "name",
