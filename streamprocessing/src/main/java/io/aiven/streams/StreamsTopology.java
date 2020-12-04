@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 
 import fi.saily.tmsdemo.DigitrafficMessage;
 
+import org.apache.avro.generic.GenericRecord;
 import org.apache.commons.text.StringEscapeUtils;
 
 @Component
@@ -34,7 +35,7 @@ public class StreamsTopology {
     }
 
     @Bean    
-    public static Topology kafkaStreamTopology(Serde<DigitrafficMessage> valueSerde) {
+    public static Topology kafkaStreamTopology(Serde<DigitrafficMessage> valueSerde, Serde<GenericRecord> genericSerde) {
             
         final StreamsBuilder streamsBuilder = new StreamsBuilder();
                 
@@ -45,7 +46,8 @@ public class StreamsTopology {
         .filter((k, v) -> !k.isBlank())
         .to("observations.weather.processed", Produced.with(Serdes.String(), valueSerde));                
         
-        KTable<String, JsonNode> stationTable = streamsBuilder.table("stations.weather");
+        // Sourced weather stations from PostreSQL table
+        KTable<String, GenericRecord> stationTable = streamsBuilder.table("tms-demo-pg.public.weather_stations", Consumed.with(Serdes.String(), genericSerde));
 
         KStream<String, DigitrafficMessage> avroWeatherStream = 
             streamsBuilder.stream("observations.weather.processed", 
@@ -56,7 +58,7 @@ public class StreamsTopology {
         .join(stationTable, (measurement, station) -> 
             DigitrafficMessage.newBuilder(measurement)
             .setMunicipality(
-                StringEscapeUtils.unescapeJava(station.get("municipality").asText()))
+                StringEscapeUtils.unescapeJava(station.get("municipality").toString()))
                 .build())        
         .to("observations.weather.municipality", Produced.with(Serdes.String(), valueSerde));        
                            
@@ -73,10 +75,10 @@ public class StreamsTopology {
             Optional<JsonNode> unit = Optional.ofNullable(v.get("sensorUnit"));
         
             final DigitrafficMessage msg = DigitrafficMessage.newBuilder()
-            .setId(id.get().asLong())
+            .setId(id.get().asInt())
             .setName(name.get().asText())
             .setSensorValue(value.get().asDouble())
-            .setRoadStationId(stationId.get().asLong())
+            .setRoadStationId(stationId.get().asInt())
             .setMeasuredTime(Instant.parse(time.get().asText()).toEpochMilli())
             .setSensorUnit(unit.get().asText())
             .build();

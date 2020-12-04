@@ -30,8 +30,8 @@ resource "aiven_kafka_connector" "kafka-pg-cdc" {
   connector_name = "kafka-pg-cdc"
 
   config = {  
-    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
-    "key.converter.schemas.enable": "true",
+    "key.converter" : "org.apache.kafka.connect.storage.StringConverter",
+    "key.converter.schemas.enable": "false",
     "value.converter": "io.confluent.connect.avro.AvroConverter",
     "value.converter.schema.registry.url": local.schema_registry_uri,
     "value.converter.basic.auth.credentials.source": "URL",
@@ -51,9 +51,9 @@ resource "aiven_kafka_connector" "kafka-pg-cdc" {
     "transforms.unwrap.type":"io.debezium.transforms.UnwrapFromEnvelope",
     "transforms.unwrap.drop.tombstones":"false",
     "transforms.insertKey.type":"org.apache.kafka.connect.transforms.ValueToKey",
-    "transforms.insertKey.fields":"roadStationId",
+    "transforms.insertKey.fields":"roadstationid",
     "transforms.extractKey.type":"org.apache.kafka.connect.transforms.ExtractField$Key",
-    "transforms.extractKey.field":"roadStationId",
+    "transforms.extractKey.field":"roadstationid",
     "include.schema.changes": "false"
   }
 }
