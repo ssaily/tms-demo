@@ -17,15 +17,15 @@ spec:
     spec:
       containers:      
       - name: tms-demo
-        image: ssaily/tms-demo-processing:0.1.0        
+        image: ssaily/tms-demo-processing:0.1.1        
         envFrom:
           - secretRef:
               name: kafka-secrets        
           - secretRef: 
               name: tms-service-endpoint
         volumeMounts:
-        - mountPath: /etc/streams/tms-service-cert
-          name: tms-service-cert
+        - mountPath: /etc/streams/tms-processing-cert
+          name: tms-processing-cert
         resources:
           limits:
             memory: 512Mi
@@ -35,9 +35,9 @@ spec:
             cpu: "100m"
         imagePullPolicy: Always
       volumes:
-        - name: tms-service-cert
+        - name: tms-processing-cert
           secret:
-            secretName: tms-service-cert
+            secretName: tms-processing-cert
             items:
             - key: client.keystore.p12
               path: client.keystore.p12

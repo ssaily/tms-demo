@@ -17,7 +17,7 @@ spec:
     spec:
       containers:      
       - name: tms-demo-sink
-        image: ssaily/tms-demo-sink:0.0.3
+        image: ssaily/tms-demo-sink:0.0.4
         env:          
           - name: PYTHONUNBUFFERED
             value: "1"
@@ -27,8 +27,8 @@ spec:
           - secretRef: 
               name: tms-service-endpoint
         volumeMounts:
-        - mountPath: /etc/streams/tms-service-cert
-          name: tms-service-cert
+        - mountPath: /etc/streams/tms-sink-cert
+          name: tms-sink-cert
         resources:
           limits:
             memory: 512Mi
@@ -38,9 +38,9 @@ spec:
             cpu: "100m"
         imagePullPolicy: Always
       volumes:
-        - name: tms-service-cert
+        - name: tms-sink-cert
           secret:
-            secretName: tms-service-cert
+            secretName: tms-sink-cert
             items:
             - key: service.cert
               path: service.cert

@@ -17,9 +17,9 @@ def connect_kafka() -> KafkaProducer:
         value_serializer=str.encode,
         compression_type='gzip',
         security_protocol="SSL",
-        ssl_cafile="/etc/streams/tms-service-cert/ca.pem",
-        ssl_certfile="/etc/streams/tms-service-cert/service.cert",
-        ssl_keyfile="/etc/streams/tms-service-cert/service.key",        
+        ssl_cafile="/etc/streams/tms-ingest-cert/ca.pem",
+        ssl_certfile="/etc/streams/tms-ingest-cert/service.cert",
+        ssl_keyfile="/etc/streams/tms-ingest-cert/service.key",        
     )
     return producer
 

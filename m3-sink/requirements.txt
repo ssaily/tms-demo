@@ -1,3 +1,2 @@
 confluent_kafka[avro]==1.4.0
-influxdb
 requests

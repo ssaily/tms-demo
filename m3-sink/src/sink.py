@@ -49,9 +49,9 @@ def consume_record(lines: list):
                         "session.timeout.ms": 20000,
                         "default.topic.config": {"auto.offset.reset": "latest"},
                         "security.protocol": "SSL",
-                        "ssl.ca.location": "/etc/streams/tms-service-cert/ca.pem",
-                        "ssl.certificate.location": "/etc/streams/tms-service-cert/service.cert",
-                        "ssl.key.location": "/etc/streams/tms-service-cert/service.key"
+                        "ssl.ca.location": "/etc/streams/tms-sink-cert/ca.pem",
+                        "ssl.certificate.location": "/etc/streams/tms-sink-cert/service.cert",
+                        "ssl.key.location": "/etc/streams/tms-sink-cert/service.key"
                        }
 
     consumer = Consumer(consumer_config)    

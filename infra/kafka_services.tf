@@ -18,6 +18,39 @@ resource "aiven_kafka" "tms-demo-kafka" {
   }
 }
 
+resource "aiven_service_user" "tms-ingest-user" {
+  project = var.avn_project_id
+  service_name = aiven_kafka.tms-demo-kafka.service_name
+  
+  username = "tms-ingest-user"
+
+  depends_on = [
+    aiven_kafka.tms-demo-kafka
+  ]
+}
+
+resource "aiven_service_user" "tms-processing-user" {
+  project = var.avn_project_id
+  service_name = aiven_kafka.tms-demo-kafka.service_name
+  
+  username = "tms-processing-user"
+
+  depends_on = [
+    aiven_kafka.tms-demo-kafka
+  ]
+}
+
+resource "aiven_service_user" "tms-sink-user" {
+  project = var.avn_project_id
+  service_name = aiven_kafka.tms-demo-kafka.service_name
+  
+  username = "tms-sink-user"
+
+  depends_on = [
+    aiven_kafka.tms-demo-kafka
+  ]
+}
+
 // Kafka connect service
 resource "aiven_kafka_connect" "tms-demo-kafka-connect1" {
   project = var.avn_project_id
@@ -36,6 +69,39 @@ resource "aiven_kafka_connect" "tms-demo-kafka-connect1" {
       kafka_connect = true
     }
   }
+}
+
+resource "aiven_kafka_acl" "tms-ingest-acl" {
+  project = var.avn_project_id
+  service_name = aiven_kafka.tms-demo-kafka.service_name
+  permission = "write"
+  username = aiven_service_user.tms-ingest-user.username
+  topic = aiven_kafka_topic.observations-weather-raw.topic_name
+  depends_on = [
+    aiven_kafka.tms-demo-kafka
+  ]
+}
+
+resource "aiven_kafka_acl" "tms-processing-acl" {
+  project = var.avn_project_id
+  service_name = aiven_kafka.tms-demo-kafka.service_name
+  permission = "readwrite"
+  username = aiven_service_user.tms-processing-user.username
+  topic = "*"
+  depends_on = [
+    aiven_kafka.tms-demo-kafka
+  ]
+}
+
+resource "aiven_kafka_acl" "tms-sink-acl" {
+  project = var.avn_project_id
+  service_name = aiven_kafka.tms-demo-kafka.service_name
+  permission = "read"
+  username = aiven_service_user.tms-sink-user.username
+  topic = aiven_kafka_topic.observations-weather-municipality.topic_name
+  depends_on = [
+    aiven_kafka.tms-demo-kafka
+  ]
 }
 
 // Kafka connect service integration
