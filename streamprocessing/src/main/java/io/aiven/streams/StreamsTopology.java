@@ -1,6 +1,8 @@
 package io.aiven.streams;
 
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -16,10 +18,13 @@ import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Produced;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import fi.saily.tmsdemo.DigitrafficMessage;
+import io.confluent.kafka.streams.serdes.avro.GenericAvroSerde;
+import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 
 import org.apache.avro.generic.GenericRecord;
 import org.apache.commons.text.StringEscapeUtils;
@@ -35,10 +40,19 @@ public class StreamsTopology {
     }
 
     @Bean    
-    public static Topology kafkaStreamTopology(Serde<DigitrafficMessage> valueSerde, Serde<GenericRecord> genericSerde) {
+    public static Topology kafkaStreamTopology(@Value("${spring.application.schema-registry}") String schemaRegistryUrl) {
             
         final StreamsBuilder streamsBuilder = new StreamsBuilder();
-                
+        
+        // schema registry
+        Map<String, String> serdeConfig = new HashMap<>();
+        serdeConfig.put("schema.registry.url", schemaRegistryUrl);
+        serdeConfig.put("basic.auth.credentials.source", "URL");
+        Serde<DigitrafficMessage> valueSerde = new SpecificAvroSerde<>();        
+        Serde<GenericRecord> genericSerde = new GenericAvroSerde();
+
+        valueSerde.configure(serdeConfig, false);
+        genericSerde.configure(serdeConfig, false);
         
         KStream<String, JsonNode> jsonWeatherStream = streamsBuilder.stream("observations.weather.raw");
         jsonWeatherStream        

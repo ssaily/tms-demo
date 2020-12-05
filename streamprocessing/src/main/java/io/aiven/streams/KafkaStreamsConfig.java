@@ -19,31 +19,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerde;
 
-import fi.saily.tmsdemo.DigitrafficMessage;
-import io.confluent.kafka.streams.serdes.avro.GenericAvroSerde;
-import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
-
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 
 @Configuration
 public class KafkaStreamsConfig {
     @Autowired
     private ApplicationContext appContext;
-    private final Serde<DigitrafficMessage> valueSerde = new SpecificAvroSerde<>();
-    private final Serde<GenericRecord> genericValueSerde = new GenericAvroSerde();
-
-    public KafkaStreamsConfig(@Value("${spring.application.schema-registry}") String schemaRegistryUrl) {
-        // schema registry
-        Map<String, String> serdeConfig = new HashMap<>();
-        serdeConfig.put("schema.registry.url", schemaRegistryUrl);
-        serdeConfig.put("basic.auth.credentials.source", "URL");
-        
-        valueSerde.configure(serdeConfig, false);
-        genericValueSerde.configure(serdeConfig, false);
-
-    }
 
     @Bean
     public KafkaStreams kafkaStreams(KafkaProperties kafkaProperties,
@@ -75,16 +56,6 @@ public class KafkaStreamsConfig {
         kafkaStreams.start();
 
         return kafkaStreams;
-    }
-
-    @Bean
-    public Serde<DigitrafficMessage> digitrafficSerde() {
-        return valueSerde;
-    }
-
-    @Bean
-    public Serde<GenericRecord> genericSerde() {
-        return genericValueSerde;
     }
 
 }

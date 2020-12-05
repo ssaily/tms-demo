@@ -17,26 +17,22 @@ import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerde;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
 import fi.saily.tmsdemo.DigitrafficMessage;
-import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
-import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
+import io.confluent.kafka.schemaregistry.testutil.MockSchemaRegistry;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.GenericAvroSerde;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
@@ -44,26 +40,22 @@ import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-@ExtendWith(MockitoExtension.class)
 class StreamsApplicationTests {
-    private static Properties config;
-    private static SpecificAvroSerde<DigitrafficMessage> serde;
-    private static Serde<GenericRecord> genericSerde;
-    private final SchemaRegistryClient schemaRegistryClient;
+    private static final String SCHEMA_REGISTRY_SCOPE = StreamsApplicationTests.class.getName();
+    private static final String MOCK_SCHEMA_REGISTRY_URL = "mock://" + SCHEMA_REGISTRY_SCOPE;
 
-    public StreamsApplicationTests() {
-        final Map<String, String> schemaRegistryConfig = Collections
-                .singletonMap(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "mocked");
+    protected TestInputTopic<String, JsonNode> rawInputTopic;
+    protected TestOutputTopic<String, DigitrafficMessage> processedOutputTopic;
+    protected TestInputTopic<String, DigitrafficMessage> processedInputTopic;
+    protected TestInputTopic<String, GenericRecord> stationInputTopic;
+    protected TestOutputTopic<String, DigitrafficMessage> enrichedOutputTopic;
 
-        schemaRegistryClient = new MockSchemaRegistryClient();
-        
-        serde = new SpecificAvroSerde<>(schemaRegistryClient);
-        serde.configure(schemaRegistryConfig, false);
+    private TopologyTestDriver testDriver;
+    
+    @BeforeEach
+    public void setup() throws IOException, RestClientException {        
 
-        genericSerde = new GenericAvroSerde(schemaRegistryClient);
-        serde.configure(schemaRegistryConfig, false);
-
-        config = new Properties();
+        Properties config = new Properties();
         config.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "tms-test-app");
         config.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "foo:1234");
         config.setProperty(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
@@ -72,54 +64,52 @@ class StreamsApplicationTests {
         config.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
         config.setProperty(JsonDeserializer.VALUE_DEFAULT_TYPE, JsonNode.class.getName());
 
-    }
+        Map<String, String> schemaRegistryConfig = Collections
+        .singletonMap(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, MOCK_SCHEMA_REGISTRY_URL);
 
-    @BeforeEach
-    public void setup() throws IOException, RestClientException {
+        Serde<String> stringSerde = Serdes.String();
 
-    }
+        SpecificAvroSerde<DigitrafficMessage> digitrafficSerde = new SpecificAvroSerde<>();
+        digitrafficSerde.configure(schemaRegistryConfig, false);
 
-    
-    @Test
-    public void shouldCreateAvroFromJson() {
-        
-        Topology topology = StreamsTopology.kafkaStreamTopology(serde, genericSerde);
-        TopologyTestDriver testDriver = new TopologyTestDriver(topology, config);
+        Serde<GenericRecord> stationSerde = new GenericAvroSerde();
+        stationSerde.configure(schemaRegistryConfig, false);        
 
-        TestInputTopic<String, JsonNode> inputTopic = testDriver.createInputTopic(
+        Topology topology = StreamsTopology.kafkaStreamTopology(MOCK_SCHEMA_REGISTRY_URL);
+        testDriver = new TopologyTestDriver(topology, config);        
+
+        rawInputTopic = testDriver.createInputTopic(
             "observations.weather.raw",
-            new StringSerializer(),
-            new JsonSerializer<>()); 
-        
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode jsonObj = null;
-        
-        try {
-            jsonObj = mapper.readTree("{\"id\": 132, \"roadStationId\": 12016, \"name\": \"KUITUVASTE_SUURI_1\", \"oldName\": " +
-            "\"fiberresponsebig1\", \"shortName\": \"KVaS1 \", \"sensorValue\": 0.0, \"sensorUnit\": \"###\", " +
-            "\"measuredTime\": \"2020-12-02T20:42:00Z\"}");
-        } catch (Exception e) {
-            
-        }
-            
-        inputTopic.pipeInput("12016", jsonObj);
+            stringSerde.serializer(),
+            new JsonSerializer<>());
 
-        TestOutputTopic<String, DigitrafficMessage> outputTopic = testDriver.createOutputTopic(
+        processedOutputTopic = testDriver.createOutputTopic(
             "observations.weather.processed",
-            new StringDeserializer(),
-            serde.deserializer());
+            stringSerde.deserializer(),
+            digitrafficSerde.deserializer());
 
-        assertThat(outputTopic.readKeyValue(), equalTo(new KeyValue<>("12016", 
-            DigitrafficMessage.newBuilder()
-                .setId(132)
-                .setRoadStationId(12016)
-                .setName("KUITUVASTE_SUURI_1")
-                .setSensorValue(0.0f)
-                .setSensorUnit("###")
-                .setMeasuredTime(Instant.parse("2020-12-02T20:42:00Z").toEpochMilli()).build())));
-        testDriver.close();
+        processedInputTopic = testDriver.createInputTopic(
+            "observations.weather.processed",
+            stringSerde.serializer(),
+            digitrafficSerde.serializer()); 
+
+        stationInputTopic = testDriver.createInputTopic(
+            "tms-demo-pg.public.weather_stations",
+            stringSerde.serializer(),
+            stationSerde.serializer());
+
+        enrichedOutputTopic = testDriver.createOutputTopic(
+            "observations.weather.municipality",
+            stringSerde.deserializer(),
+            digitrafficSerde.deserializer());
     }
-    /*
+
+    @AfterEach
+    void afterEach() {        
+        testDriver.close();
+        MockSchemaRegistry.dropScope(SCHEMA_REGISTRY_SCOPE);
+    }
+
     @Test
     public void shouldEnrichMunicipality() throws IOException, RestClientException  {
 
@@ -131,39 +121,18 @@ class StreamsApplicationTests {
         record.put("roadstationid", 12016);
         record.put("name", "somename");
         record.put("municipality", "Kärsämäki");
-    
-        schemaRegistryClient.register("tms-demo-pg.public.weather_stations", record.getSchema());
-
-        Topology topology = StreamsTopology.kafkaStreamTopology(serde, genericSerde);
-        TopologyTestDriver testDriver = new TopologyTestDriver(topology, config);
-
-        TestInputTopic<String, DigitrafficMessage> inputTopic = testDriver.createInputTopic(
-            "observations.weather.processed",
-            new StringSerializer(),
-            serde.serializer()); 
         
-        TestInputTopic<String, GenericRecord> inputStationTopic = testDriver.createInputTopic(
-            "tms-demo-pg.public.weather_stations",
-            new StringSerializer(),
-            genericSerde.serializer());         
+        stationInputTopic.pipeInput("12016", record);
 
-        TestOutputTopic<String, DigitrafficMessage> outputTopic = testDriver.createOutputTopic(
-            "observations.weather.municipality",
-            new StringDeserializer(),
-            serde.deserializer());
-
-            
-        inputTopic.pipeInput("12016", DigitrafficMessage.newBuilder()
+        processedInputTopic.pipeInput("12016", DigitrafficMessage.newBuilder()
             .setId(132)
             .setRoadStationId(12016)
             .setName("KUITUVASTE_SUURI_1")
             .setSensorValue(0.0f)
             .setSensorUnit("###")
             .setMeasuredTime(Instant.parse("2020-12-02T20:42:00Z").toEpochMilli()).build());
-        
-        inputStationTopic.pipeInput("12016", record);
 
-        assertThat(outputTopic.readKeyValue(), equalTo(new KeyValue<>("12016", 
+        assertThat(enrichedOutputTopic.readKeyValue(), equalTo(new KeyValue<>("12016", 
             DigitrafficMessage.newBuilder()
                 .setId(132)
                 .setRoadStationId(12016)
@@ -172,7 +141,26 @@ class StreamsApplicationTests {
                 .setSensorUnit("###")
                 .setMunicipality("Kärsämäki")
                 .setMeasuredTime(Instant.parse("2020-12-02T20:42:00Z").toEpochMilli()).build())));
-        testDriver.close();
+        
     }    
-    */
+
+    @Test
+    public void shouldGenerateAvro() throws IOException, RestClientException {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode jsonObj = mapper.readTree("{\"id\": 132, \"roadStationId\": 12016, \"name\": \"KUITUVASTE_SUURI_1\", \"oldName\": " +
+            "\"fiberresponsebig1\", \"shortName\": \"KVaS1 \", \"sensorValue\": 0.0, \"sensorUnit\": \"###\", " +
+            "\"measuredTime\": \"2020-12-02T20:42:00Z\"}");
+        rawInputTopic.pipeInput("12016", jsonObj);
+
+        assertThat(processedOutputTopic.readKeyValue(), equalTo(new KeyValue<>("12016", 
+            DigitrafficMessage.newBuilder()
+                .setId(132)
+                .setRoadStationId(12016)
+                .setName("KUITUVASTE_SUURI_1")
+                .setSensorValue(0.0f)
+                .setSensorUnit("###")
+                .setMeasuredTime(Instant.parse("2020-12-02T20:42:00Z").toEpochMilli()).build())));
+        
+    }
+
 }
