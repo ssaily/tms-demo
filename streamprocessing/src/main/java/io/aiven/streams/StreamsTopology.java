@@ -1,5 +1,6 @@
 package io.aiven.streams;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,13 +16,20 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
+import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Produced;
+import org.apache.kafka.streams.kstream.Suppressed;
+import org.apache.kafka.streams.kstream.TimeWindows;
+import org.apache.kafka.streams.kstream.Windowed;
+import org.apache.kafka.streams.kstream.Suppressed.BufferConfig;
+import org.apache.kafka.streams.kstream.Suppressed.StrictBufferConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
+import fi.saily.tmsdemo.CountAndSum;
 import fi.saily.tmsdemo.DigitrafficMessage;
 import io.confluent.kafka.streams.serdes.avro.GenericAvroSerde;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
@@ -50,7 +58,8 @@ public class StreamsTopology {
         Map<String, String> serdeConfig = new HashMap<>();
         serdeConfig.put("schema.registry.url", schemaRegistryUrl);
         serdeConfig.put("basic.auth.credentials.source", "URL");
-        Serde<DigitrafficMessage> valueSerde = new SpecificAvroSerde<>();        
+        Serde<DigitrafficMessage> valueSerde = new SpecificAvroSerde<>();
+        Serde<CountAndSum> aggrSerde = new SpecificAvroSerde<>();        
         Serde<GenericRecord> genericSerde = new GenericAvroSerde();
 
         valueSerde.configure(serdeConfig, false);
@@ -78,7 +87,24 @@ public class StreamsTopology {
             .setGeohash(calculateGeohash(station))
             .build()
         )        
-        .to("observations.weather.municipality", Produced.with(Serdes.String(), valueSerde));        
+        .to("observations.weather.municipality", Produced.with(Serdes.String(), valueSerde));    
+        
+        KTable<Windowed<String>, CountAndSum> tumblingWindow = avroWeatherStream
+        .filter((k, v) -> v.getName().contentEquals("ILMA"))
+        .groupByKey() 
+        .windowedBy(TimeWindows.of(Duration.ofMinutes(60)))       
+        .aggregate(() -> new CountAndSum(0L, 0.0), 
+            (key, value, aggregate) -> {
+                aggregate.setCount(aggregate.getCount() + 1);
+                aggregate.setSum(aggregate.getSum() + value.getSensorValue());
+                return aggregate;
+            },
+            Materialized.with(Serdes.String(), aggrSerde))
+        .suppress(Suppressed.untilWindowCloses(BufferConfig.unbounded()));
+
+        tumblingWindow.mapValues(value -> value.getSum() / value.getCount(),
+        Materialized.as("average-air-temperature"))
+        .toStream().to("observations.weather.avg-air-temperature");
                            
         return streamsBuilder.build();
     }
