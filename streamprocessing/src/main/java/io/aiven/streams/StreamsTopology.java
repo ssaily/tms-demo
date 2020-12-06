@@ -29,6 +29,8 @@ import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.commons.text.StringEscapeUtils;
 
+import ch.hsr.geohash.*;
+
 @Component
 public class StreamsTopology {
     private static Logger logger = LoggerFactory.getLogger(StreamsTopology.class);        
@@ -61,7 +63,8 @@ public class StreamsTopology {
         .to("observations.weather.processed", Produced.with(Serdes.String(), valueSerde));                
         
         // Sourced weather stations from PostreSQL table
-        KTable<String, GenericRecord> stationTable = streamsBuilder.table("tms-demo-pg.public.weather_stations", Consumed.with(Serdes.String(), genericSerde));
+        KTable<String, GenericRecord> stationTable = 
+            streamsBuilder.table("tms-demo-pg.public.weather_stations", Consumed.with(Serdes.String(), genericSerde));        
 
         KStream<String, DigitrafficMessage> avroWeatherStream = 
             streamsBuilder.stream("observations.weather.processed", 
@@ -71,12 +74,11 @@ public class StreamsTopology {
         .filter((k, v) -> !k.isBlank())
         .join(stationTable, (measurement, station) -> 
             DigitrafficMessage.newBuilder(measurement)
-            .setMunicipality(
-                StringEscapeUtils.unescapeJava(station.get("municipality").toString()))
-                .build())        
-        .to("observations.weather.municipality", Produced.with(Serdes.String(), valueSerde));
-        
-        
+            .setMunicipality(StringEscapeUtils.unescapeJava(station.get("municipality").toString()))
+            .setGeohash(calculateGeohash(station))
+            .build()
+        )        
+        .to("observations.weather.municipality", Produced.with(Serdes.String(), valueSerde));        
                            
         return streamsBuilder.build();
     }
@@ -105,4 +107,8 @@ public class StreamsTopology {
 
     }
 
+    private static final String calculateGeohash(GenericRecord station) {        
+        return GeoHash.geoHashStringWithCharacterPrecision(Double.parseDouble(station.get("latitude").toString()), 
+        Double.parseDouble(station.get("longitude").toString()), 6);
+    }
 }
