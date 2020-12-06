@@ -20,11 +20,12 @@ def to_buffer(buffer: list, message):
     except Exception as e:                    
         print(f"Failed deserialize avro payload: {message.value()}\n{e}")
     else:
-        buffer.append("{measurement},roadStationId={road_station_id},name={name},municipality={municipality} sensorValue={sensor_value} {timestamp}"                    
+        buffer.append("{measurement},roadStationId={road_station_id},name={name},municipality={municipality},geohash={geohash} sensorValue={sensor_value} {timestamp}"                    
             .format(measurement="observations",
                     road_station_id=value["roadStationId"],
                     name=value["name"],
                     municipality=bytes(value["municipality"], 'utf-8').decode('unicode-escape').replace(" ", "_"),
+                    geohash=value["geohash"],
                     sensor_value=value["sensorValue"],
                     timestamp=value["measuredTime"] * 1000 * 1000))
 

@@ -17,7 +17,7 @@ spec:
     spec:
       containers:      
       - name: tms-demo-sink
-        image: ssaily/tms-demo-sink:0.0.4
+        image: ssaily/tms-demo-sink:0.0.5
         env:          
           - name: PYTHONUNBUFFERED
             value: "1"

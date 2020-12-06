@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'io.aiven'
-version = '0.1.1-SNAPSHOT'
+version = '0.1.2-SNAPSHOT'
 sourceCompatibility = '14'
 
 repositories {
@@ -25,6 +25,7 @@ dependencies {
 	implementation 'org.apache.kafka:kafka-streams:2.6.0'
 	implementation 'io.confluent:kafka-streams-avro-serde:5.5.1'
 	implementation 'org.influxdb:influxdb-java:2.20'
+	implementation 'ch.hsr:geohash:1.4.0'
 	testCompile 'org.mockito:mockito-core:2.21.0'
 	testCompile 'org.mockito:mockito-junit-jupiter:2.23.0'
 	testImplementation 'org.hamcrest:hamcrest:2.2'
