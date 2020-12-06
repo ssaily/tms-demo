@@ -121,6 +121,8 @@ class StreamsApplicationTests {
         record.put("roadstationid", 12016);
         record.put("name", "somename");
         record.put("municipality", "Kärsämäki");
+        record.put("latitude", 64.006442);
+        record.put("longitude", 25.755648);
         
         stationInputTopic.pipeInput("12016", record);
 
@@ -140,6 +142,7 @@ class StreamsApplicationTests {
                 .setSensorValue(0.0f)
                 .setSensorUnit("###")
                 .setMunicipality("Kärsämäki")
+                .setGeohash("ue6k4h")
                 .setMeasuredTime(Instant.parse("2020-12-02T20:42:00Z").toEpochMilli()).build())));
         
     }    

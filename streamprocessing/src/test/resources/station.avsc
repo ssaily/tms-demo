@@ -26,6 +26,23 @@
         ],
         "default": null
       }
+      ,
+      {
+        "name": "latitude",
+        "type": [
+          "null",
+          "double"
+        ],
+        "default": null
+      },
+      {
+        "name": "longitude",
+        "type": [
+          "null",
+          "double"
+        ],
+        "default": null
+      }
     ],
     "connect.name": "tms_demo_pg.public.weather_stations.Value"
 }
