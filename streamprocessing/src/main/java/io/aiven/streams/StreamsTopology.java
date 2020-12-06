@@ -65,7 +65,7 @@ public class StreamsTopology {
 
         KStream<String, DigitrafficMessage> avroWeatherStream = 
             streamsBuilder.stream("observations.weather.processed", 
-        Consumed.with(Serdes.String(), valueSerde));
+        Consumed.with(Serdes.String(), valueSerde).withTimestampExtractor(new ObservationTimestampExtractor()));
         
         avroWeatherStream
         .filter((k, v) -> !k.isBlank())
@@ -74,7 +74,9 @@ public class StreamsTopology {
             .setMunicipality(
                 StringEscapeUtils.unescapeJava(station.get("municipality").toString()))
                 .build())        
-        .to("observations.weather.municipality", Produced.with(Serdes.String(), valueSerde));        
+        .to("observations.weather.municipality", Produced.with(Serdes.String(), valueSerde));
+        
+        
                            
         return streamsBuilder.build();
     }
