@@ -38,6 +38,7 @@ kubectl apply -f namespace.yaml
 ### Deployments
 ```
 kubectl apply -f deploy-ingest.yaml
+kubectl apply -f deploy-enrich.yaml
 kubectl apply -f deploy-processing.yaml
 kubectl apply -f deploy-sink.yaml
 ```
