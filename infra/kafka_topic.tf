@@ -48,7 +48,7 @@ resource "aiven_kafka_topic" "observations-weather-municipality" {
   ]
 }
 
-resource "aiven_kafka_topic" "observations.weather.avg-air-temperature" {
+resource "aiven_kafka_topic" "observations-weather-avg-air-temperature" {
   project = var.avn_project_id
   service_name = aiven_kafka.tms-demo-kafka.service_name
   topic_name = "observations.weather.avg-air-temperature"

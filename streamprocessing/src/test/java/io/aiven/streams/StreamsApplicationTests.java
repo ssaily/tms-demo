@@ -110,7 +110,7 @@ class StreamsApplicationTests {
         MockSchemaRegistry.dropScope(SCHEMA_REGISTRY_SCOPE);
     }
 
-    @Test
+    //@Test
     public void shouldEnrichMunicipality() throws IOException, RestClientException  {
 
         Path resourceDirectory = Paths.get("src","test","resources");

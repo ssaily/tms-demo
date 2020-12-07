@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tms-demo-processing
+  name: tms-demo-enrich
   namespace: tms-demo
   labels:
     app: tms-demo
@@ -20,7 +20,7 @@ spec:
         image: ssaily/tms-demo-processing:0.1.3
         env:
           - name: SPRING_PROFILES_ACTIVE
-            value: calculations
+            value: enrichment
         envFrom:
           - secretRef:
               name: kafka-secrets        

@@ -1,7 +1,7 @@
 # With SSL configured
 spring:
     application:
-      name: tms-streams-demo
+      name: tms-streams-demo-${SPRING_PROFILES_ACTIVE}
       schema-registry: ${SCHEMA_REGISTRY}      
     kafka:
       bootstrap-servers: ${BOOTSTRAP_SERVERS}      
