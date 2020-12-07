@@ -1,7 +1,5 @@
 package io.aiven.streams;
 
-import java.time.Instant;
-
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.streams.processor.TimestampExtractor;
 

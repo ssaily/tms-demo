@@ -48,6 +48,22 @@ resource "aiven_kafka_topic" "observations-weather-municipality" {
   ]
 }
 
+resource "aiven_kafka_topic" "observations.weather.avg-air-temperature" {
+  project = var.avn_project_id
+  service_name = aiven_kafka.tms-demo-kafka.service_name
+  topic_name = "observations.weather.avg-air-temperature"
+  partitions = 20
+  replication = 2  
+  config {
+    retention_ms = 1814400000      
+    cleanup_policy = "delete"
+    min_insync_replicas = 1
+  }
+  depends_on = [
+    aiven_kafka.tms-demo-kafka
+  ]
+}
+
 resource "aiven_kafka_topic" "stations-weather" {
   project = var.avn_project_id
   service_name = aiven_kafka.tms-demo-kafka.service_name
