@@ -18,11 +18,8 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Produced;
-import org.apache.kafka.streams.kstream.Suppressed;
 import org.apache.kafka.streams.kstream.TimeWindows;
 import org.apache.kafka.streams.kstream.Windowed;
-import org.apache.kafka.streams.kstream.Suppressed.BufferConfig;
-import org.apache.kafka.streams.kstream.Suppressed.StrictBufferConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,11 +30,14 @@ import fi.saily.tmsdemo.CountAndSum;
 import fi.saily.tmsdemo.DigitrafficMessage;
 import io.confluent.kafka.streams.serdes.avro.GenericAvroSerde;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
+import org.springframework.kafka.support.serializer.JsonSerde;
 
 import org.apache.avro.generic.GenericRecord;
 import org.apache.commons.text.StringEscapeUtils;
 
 import ch.hsr.geohash.*;
+
+import static org.apache.kafka.streams.kstream.WindowedSerdes.timeWindowedSerdeFrom;
 
 @Component
 public class StreamsTopology {
@@ -63,12 +63,15 @@ public class StreamsTopology {
         Serde<GenericRecord> genericSerde = new GenericAvroSerde();
 
         valueSerde.configure(serdeConfig, false);
+        aggrSerde.configure(serdeConfig, false);
         genericSerde.configure(serdeConfig, false);
         
-        KStream<String, JsonNode> jsonWeatherStream = streamsBuilder.stream("observations.weather.raw");
+        KStream<String, JsonNode> jsonWeatherStream = streamsBuilder.stream("observations.weather.raw", 
+            Consumed.with(Serdes.String(), new JsonSerde<>(JsonNode.class)));
+
         jsonWeatherStream        
-        .map((k,v) -> convertToAvro(v))
-        .filter((k, v) -> !k.isBlank())
+        .filter((k, v) -> !k.isBlank() && v.get("measuredTime") != null)
+        .map((k,v) -> convertToAvro(v))        
         .to("observations.weather.processed", Produced.with(Serdes.String(), valueSerde));                
         
         // Sourced weather stations from PostreSQL table
@@ -89,22 +92,25 @@ public class StreamsTopology {
         )        
         .to("observations.weather.municipality", Produced.with(Serdes.String(), valueSerde));    
         
+
         KTable<Windowed<String>, CountAndSum> tumblingWindow = avroWeatherStream
-        .filter((k, v) -> v.getName().contentEquals("ILMA"))
+        .filter((k, v) -> v.getName() != null && v.getName().contentEquals("ILMA"))
         .groupByKey() 
-        .windowedBy(TimeWindows.of(Duration.ofMinutes(60)))       
+        .windowedBy(TimeWindows.of(Duration.ofMinutes(60)).advanceBy(Duration.ofMinutes(60)).grace(Duration.ofMinutes(10)))                
         .aggregate(() -> new CountAndSum(0L, 0.0), 
-            (key, value, aggregate) -> {
+            (key, value, aggregate) -> {                
                 aggregate.setCount(aggregate.getCount() + 1);
                 aggregate.setSum(aggregate.getSum() + value.getSensorValue());
                 return aggregate;
-            },
-            Materialized.with(Serdes.String(), aggrSerde))
-        .suppress(Suppressed.untilWindowCloses(BufferConfig.unbounded()));
+            }, Materialized.with(Serdes.String(), aggrSerde));            
+        
 
-        tumblingWindow.mapValues(value -> value.getSum() / value.getCount(),
-        Materialized.as("average-air-temperature"))
-        .toStream().to("observations.weather.avg-air-temperature");
+        KStream<Windowed<String>, Double> results = tumblingWindow.mapValues(value -> value.getSum() / value.getCount())
+            //.suppress(Suppressed.untilWindowCloses(BufferConfig.unbounded()))
+            .toStream();
+
+        results.map((key, value) -> new KeyValue<String, String>(key.key() + "," + key.window().startTime().toString(), value.toString()))
+        .to("observations.weather.avg-air-temperature", Produced.with(Serdes.String(), Serdes.String()));
                            
         return streamsBuilder.build();
     }
