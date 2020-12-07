@@ -16,7 +16,7 @@ terraform apply
 
 ## Download secrets
 ````
-./get-aiven-creds.sh <aiven-project-name> <service-user>
+./get-aiven-creds.sh <aiven-project-name>
 ````
 
 ## Create k8s resources
