@@ -16,7 +16,7 @@ terraform apply
 
 ## Download secrets
 ````
-./get-aiven-creds.sh <aiven-project-name>
+./get-demo-secrets.sh <aiven-project-name>
 ````
 
 ## Create k8s resources
@@ -32,7 +32,7 @@ kubectl apply -f namespace.yaml
 
 ### Secrets
 ```
-./init-secrets.sh
+./create-k8s-secrets.sh
 ```
 
 ### Deployments
