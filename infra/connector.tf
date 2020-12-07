@@ -56,4 +56,6 @@ resource "aiven_kafka_connector" "kafka-pg-cdc" {
     "transforms.extractKey.field":"roadstationid",
     "include.schema.changes": "false"
   }
+
+  depends_on = [ aiven_kafka_connect.tms-demo-kafka-connect1 ]
 }
