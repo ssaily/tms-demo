@@ -24,22 +24,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import fi.saily.tmsdemo.CountAndSum;
 import fi.saily.tmsdemo.DigitrafficMessage;
-import io.confluent.kafka.streams.serdes.avro.GenericAvroSerde;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import org.springframework.kafka.support.serializer.JsonSerde;
 
-import org.apache.avro.generic.GenericRecord;
-import org.apache.commons.text.StringEscapeUtils;
-
-import ch.hsr.geohash.*;
-
-import static org.apache.kafka.streams.kstream.WindowedSerdes.timeWindowedSerdeFrom;
-
 @Component
+@Profile("calculations")
 public class StreamsTopology {
     private static Logger logger = LoggerFactory.getLogger(StreamsTopology.class);        
     
@@ -60,11 +54,9 @@ public class StreamsTopology {
         serdeConfig.put("basic.auth.credentials.source", "URL");
         Serde<DigitrafficMessage> valueSerde = new SpecificAvroSerde<>();
         Serde<CountAndSum> aggrSerde = new SpecificAvroSerde<>();        
-        Serde<GenericRecord> genericSerde = new GenericAvroSerde();
-
+        
         valueSerde.configure(serdeConfig, false);
         aggrSerde.configure(serdeConfig, false);
-        genericSerde.configure(serdeConfig, false);
         
         KStream<String, JsonNode> jsonWeatherStream = streamsBuilder.stream("observations.weather.raw", 
             Consumed.with(Serdes.String(), new JsonSerde<>(JsonNode.class)));
@@ -73,25 +65,10 @@ public class StreamsTopology {
         .filter((k, v) -> !k.isBlank() && v.get("measuredTime") != null)
         .map((k,v) -> convertToAvro(v))        
         .to("observations.weather.processed", Produced.with(Serdes.String(), valueSerde));                
-        
-        // Sourced weather stations from PostreSQL table
-        KTable<String, GenericRecord> stationTable = 
-            streamsBuilder.table("tms-demo-pg.public.weather_stations", Consumed.with(Serdes.String(), genericSerde));        
 
         KStream<String, DigitrafficMessage> avroWeatherStream = 
             streamsBuilder.stream("observations.weather.processed", 
         Consumed.with(Serdes.String(), valueSerde).withTimestampExtractor(new ObservationTimestampExtractor()));
-        
-        avroWeatherStream
-        .filter((k, v) -> !k.isBlank())
-        .join(stationTable, (measurement, station) -> 
-            DigitrafficMessage.newBuilder(measurement)
-            .setMunicipality(StringEscapeUtils.unescapeJava(station.get("municipality").toString()))
-            .setGeohash(calculateGeohash(station))
-            .build()
-        )        
-        .to("observations.weather.municipality", Produced.with(Serdes.String(), valueSerde));    
-        
 
         KTable<Windowed<String>, CountAndSum> tumblingWindow = avroWeatherStream
         .filter((k, v) -> v.getName() != null && v.getName().contentEquals("ILMA"))
@@ -102,8 +79,7 @@ public class StreamsTopology {
                 aggregate.setCount(aggregate.getCount() + 1);
                 aggregate.setSum(aggregate.getSum() + value.getSensorValue());
                 return aggregate;
-            }, Materialized.with(Serdes.String(), aggrSerde));            
-        
+            }, Materialized.with(Serdes.String(), aggrSerde));                    
 
         KStream<Windowed<String>, Double> results = tumblingWindow.mapValues(value -> value.getSum() / value.getCount())
             //.suppress(Suppressed.untilWindowCloses(BufferConfig.unbounded()))
@@ -111,7 +87,7 @@ public class StreamsTopology {
 
         results.map((key, value) -> new KeyValue<String, String>(key.key() + "," + key.window().startTime().toString(), value.toString()))
         .to("observations.weather.avg-air-temperature", Produced.with(Serdes.String(), Serdes.String()));
-                           
+                 
         return streamsBuilder.build();
     }
     
@@ -138,9 +114,5 @@ public class StreamsTopology {
         }
 
     }
-
-    private static final String calculateGeohash(GenericRecord station) {        
-        return GeoHash.geoHashStringWithCharacterPrecision(Double.parseDouble(station.get("latitude").toString()), 
-        Double.parseDouble(station.get("longitude").toString()), 6);
-    }
+    
 }
