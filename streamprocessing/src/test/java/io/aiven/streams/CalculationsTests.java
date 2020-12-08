@@ -128,7 +128,7 @@ class CalculationsTests {
                 .setRoadStationId(12016)
                 .setName("ILMA")
                 .setSensorValue(0.5f)            
-                .setMeasuredTime(Instant.parse("2020-12-02T20:00:00Z").toEpochMilli()).build())));
+                .setMeasuredTime(Instant.parse("2020-12-02T21:00:00Z").toEpochMilli()).build())));
         
     }    
 
