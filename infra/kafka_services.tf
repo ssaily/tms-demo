@@ -18,39 +18,6 @@ resource "aiven_kafka" "tms-demo-kafka" {
   }
 }
 
-resource "aiven_service_user" "tms-ingest-user" {
-  project = var.avn_project_id
-  service_name = aiven_kafka.tms-demo-kafka.service_name
-  
-  username = "tms-ingest-user"
-
-  depends_on = [
-    aiven_kafka.tms-demo-kafka
-  ]
-}
-
-resource "aiven_service_user" "tms-processing-user" {
-  project = var.avn_project_id
-  service_name = aiven_kafka.tms-demo-kafka.service_name
-  
-  username = "tms-processing-user"
-
-  depends_on = [
-    aiven_kafka.tms-demo-kafka
-  ]
-}
-
-resource "aiven_service_user" "tms-sink-user" {
-  project = var.avn_project_id
-  service_name = aiven_kafka.tms-demo-kafka.service_name
-  
-  username = "tms-sink-user"
-
-  depends_on = [
-    aiven_kafka.tms-demo-kafka
-  ]
-}
-
 // Kafka connect service
 resource "aiven_kafka_connect" "tms-demo-kafka-connect1" {
   project = var.avn_project_id
@@ -71,38 +38,6 @@ resource "aiven_kafka_connect" "tms-demo-kafka-connect1" {
   }
 }
 
-resource "aiven_kafka_acl" "tms-ingest-acl" {
-  project = var.avn_project_id
-  service_name = aiven_kafka.tms-demo-kafka.service_name
-  permission = "write"
-  username = aiven_service_user.tms-ingest-user.username
-  topic = aiven_kafka_topic.observations-weather-raw.topic_name
-  depends_on = [
-    aiven_kafka.tms-demo-kafka
-  ]
-}
-
-resource "aiven_kafka_acl" "tms-processing-acl" {
-  project = var.avn_project_id
-  service_name = aiven_kafka.tms-demo-kafka.service_name
-  permission = "readwrite"
-  username = aiven_service_user.tms-processing-user.username
-  topic = "*"
-  depends_on = [
-    aiven_kafka.tms-demo-kafka
-  ]
-}
-
-resource "aiven_kafka_acl" "tms-sink-acl" {
-  project = var.avn_project_id
-  service_name = aiven_kafka.tms-demo-kafka.service_name
-  permission = "read"
-  username = aiven_service_user.tms-sink-user.username
-  topic = aiven_kafka_topic.observations-weather-municipality.topic_name
-  depends_on = [
-    aiven_kafka.tms-demo-kafka
-  ]
-}
 
 // Kafka connect service integration
 resource "aiven_service_integration" "tms-demo-connect-integr" {
@@ -119,16 +54,4 @@ resource "aiven_service_integration" "tms-demo-connect-integr" {
       config_storage_topic = "__connect_1_configs"
     }
   }
-}
-
-data "aiven_service_user" "kafka_admin" {
-  project = var.avn_project_id
-  service_name = aiven_kafka.tms-demo-kafka.service_name
-
-  # default admin user that is automatically created each Aiven service
-  username = "avnadmin"
-
-  depends_on = [
-    aiven_kafka.tms-demo-kafka
-  ]
 }
