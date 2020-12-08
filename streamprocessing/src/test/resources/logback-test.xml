@@ -14,11 +14,11 @@
         </layout>
     </appender>
      
-    <root level="warn">        
+    <root level="debug">        
         <appender-ref ref="Console" />
     </root>
  
-    <logger name="org.apache.kafka" level="warn" additivity="false">        
+    <logger name="org.apache.kafka" level="trace" additivity="false">        
         <appender-ref ref="Console" />
     </logger>
  
