@@ -80,7 +80,7 @@ public class CalculationsTopology {
             .setRoadStationId(value.getRoadStationId())
             .setName(value.getName())
             .setSensorValue(value.getSum() / value.getCount())
-            .setMeasuredTime(key.window().start())                
+            .setMeasuredTime(key.window().end())
             .build()
         );
 
