@@ -1,8 +1,8 @@
 {
+    "name": "DigitrafficAggregate",
     "namespace": "fi.saily.tmsdemo",
-    "type": "record",    
-    "name": "CountAndSum",
-    "fields": [
+    "type": "record",
+    "fields" : [
         {
             "name": "id",
             "type": "int"
@@ -16,12 +16,12 @@
             "type": "string"
         },
         {
-            "name": "count",
-            "type": "long"
+            "name": "sensorValue",
+            "type": "double"
         },
         {
-            "name": "sum",
-            "type": "double"
+            "name": "measuredTime",
+            "type": "long"
         }
     ]
-  }
+}

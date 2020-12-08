@@ -35,16 +35,16 @@ kubectl apply -f namespace.yaml
 ./create-k8s-secrets.sh
 ```
 
-### Deployments
-```
-kubectl apply -f deploy-ingest.yaml
-kubectl apply -f deploy-enrich.yaml
-kubectl apply -f deploy-processing.yaml
-kubectl apply -f deploy-sink.yaml
-```
-
-### Produce weather station metadata
+### Import weather station metadata
 ```
 cd producer
 ./import-stations.sh
 ```
+
+### Deployments
+```
+kubectl apply -f deploy-ingest.yaml
+kubectl apply -f deploy-processing.yaml
+kubectl apply -f deploy-sink.yaml
+```
+

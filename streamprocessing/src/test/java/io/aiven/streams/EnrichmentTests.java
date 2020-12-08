@@ -40,8 +40,8 @@ import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class StreamsApplicationTests {
-    private static final String SCHEMA_REGISTRY_SCOPE = StreamsApplicationTests.class.getName();
+class EnrichmentTests {
+    private static final String SCHEMA_REGISTRY_SCOPE = EnrichmentTests.class.getName();
     private static final String MOCK_SCHEMA_REGISTRY_URL = "mock://" + SCHEMA_REGISTRY_SCOPE;
 
     protected TestInputTopic<String, JsonNode> rawInputTopic;
@@ -56,7 +56,7 @@ class StreamsApplicationTests {
     public void setup() throws IOException, RestClientException {        
 
         Properties config = new Properties();
-        config.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "tms-test-app");
+        config.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "tms-test-enrichment");
         config.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "foo:1234");
         config.setProperty(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         config.setProperty(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, JsonSerde.class.getName());
@@ -75,7 +75,7 @@ class StreamsApplicationTests {
         Serde<GenericRecord> stationSerde = new GenericAvroSerde();
         stationSerde.configure(schemaRegistryConfig, false);        
 
-        Topology topology = StreamsTopology.kafkaStreamTopology(MOCK_SCHEMA_REGISTRY_URL);
+        Topology topology = EnrichmentTopology.kafkaStreamTopology(MOCK_SCHEMA_REGISTRY_URL);
         testDriver = new TopologyTestDriver(topology, config);        
 
         rawInputTopic = testDriver.createInputTopic(
@@ -110,7 +110,7 @@ class StreamsApplicationTests {
         MockSchemaRegistry.dropScope(SCHEMA_REGISTRY_SCOPE);
     }
 
-    //@Test
+    @Test
     public void shouldEnrichMunicipality() throws IOException, RestClientException  {
 
         Path resourceDirectory = Paths.get("src","test","resources");

@@ -30,6 +30,7 @@ resource "aiven_kafka_connector" "kafka-pg-cdc" {
   connector_name = "kafka-pg-cdc"
 
   config = {  
+    "_aiven.restart.on.failure": "true",
     "key.converter" : "org.apache.kafka.connect.storage.StringConverter",
     "key.converter.schemas.enable": "false",
     "value.converter": "io.confluent.connect.avro.AvroConverter",
@@ -57,5 +58,9 @@ resource "aiven_kafka_connector" "kafka-pg-cdc" {
     "include.schema.changes": "false"
   }
 
-  depends_on = [ aiven_kafka_connect.tms-demo-kafka-connect1 ]
+  depends_on = [ 
+    aiven_kafka_connect.tms-demo-kafka-connect1,
+    aiven_kafka.tms-demo-kafka,
+    aiven_service.tms-demo-pg
+  ]
 }
