@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tms-demo-enrich
+  name: tms-demo-enrichment
   namespace: tms-demo
   labels:
-    app: tms-demo
+    app: tms-demo-enrichment
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: tms-demo
+      app: tms-demo-enrichment
   template:
     metadata:
       labels:
-        app: tms-demo
+        app: tms-demo-enrichment
     spec:
       containers:      
       - name: tms-demo-enrichment
@@ -50,19 +50,19 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tms-demo-processing
+  name: tms-demo-calculations
   namespace: tms-demo
   labels:
-    app: tms-demo
+    app: tms-demo-calculations
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: tms-demo
+      app: tms-demo-calculations
   template:
     metadata:
       labels:
-        app: tms-demo
+        app: tms-demo-calculations
     spec:
       containers:      
       - name: tms-demo-calculations

@@ -113,11 +113,12 @@ class CalculationsTests {
             .setSensorUnit("C")
             .setMeasuredTime(Instant.parse("2020-12-02T20:59:00Z").toEpochMilli()).build());
 
+        // one more event to move the streaming time outside grace period (10 minutes)
         processedInputTopic.pipeInput("12016", DigitrafficMessage.newBuilder()
             .setId(1)
             .setRoadStationId(12016)
             .setName("ILMA")
-            .setSensorValue(1.0f)
+            .setSensorValue(2.0f)
             .setSensorUnit("C")
             .setMeasuredTime(Instant.parse("2020-12-02T21:11:00Z").toEpochMilli()).build());
 
