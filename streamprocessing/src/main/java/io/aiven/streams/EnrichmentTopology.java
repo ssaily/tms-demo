@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 
 import ch.hsr.geohash.GeoHash;
 import fi.saily.tmsdemo.DigitrafficMessage;
+import fi.saily.tmsdemo.WeatherStation;
 import io.confluent.kafka.streams.serdes.avro.GenericAvroSerde;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 
@@ -53,8 +54,13 @@ public class EnrichmentTopology {
         
 
         // Sourced weather stations from PostreSQL table
-        KTable<String, GenericRecord> stationTable = 
-        streamsBuilder.table("tms-demo-pg.public.weather_stations", Consumed.with(Serdes.String(), genericSerde));        
+        KTable<String, WeatherStation> stationTable = 
+        streamsBuilder.table("tms-demo-pg.public.weather_stations", Consumed.with(Serdes.String(), genericSerde))
+        .mapValues((key, value) -> WeatherStation.newBuilder()
+            .setRoadStationId((Integer)value.get("roadstationid"))
+            .setGeohash(calculateGeohash(value))
+            .setName("")
+            .setMunicipality(value.get("municipality").toString()).build());        
 
         KStream<String, JsonNode> jsonWeatherStream = streamsBuilder.stream("observations.weather.raw", 
             Consumed.with(Serdes.String(), new JsonSerde<>(JsonNode.class)));
@@ -72,8 +78,8 @@ public class EnrichmentTopology {
         .filter((k, v) -> !k.isBlank())
         .join(stationTable, (measurement, station) -> 
             DigitrafficMessage.newBuilder(measurement)
-            .setMunicipality(StringEscapeUtils.unescapeJava(station.get("municipality").toString()))
-            .setGeohash(calculateGeohash(station))
+            .setMunicipality(StringEscapeUtils.unescapeJava(station.getMunicipality()))
+            .setGeohash(station.getGeohash())            
             .build()
         )        
         .to("observations.weather.municipality", Produced.with(Serdes.String(), valueSerde));

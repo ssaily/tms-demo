@@ -26,6 +26,8 @@ import org.apache.kafka.streams.TopologyTestDriver;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerde;
 import org.springframework.kafka.support.serializer.JsonSerializer;
@@ -41,6 +43,9 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 class EnrichmentTests {
+
+    private Logger logger = LoggerFactory.getLogger(EnrichmentTests.class);
+
     private static final String SCHEMA_REGISTRY_SCOPE = EnrichmentTests.class.getName();
     private static final String MOCK_SCHEMA_REGISTRY_URL = "mock://" + SCHEMA_REGISTRY_SCOPE;
 
@@ -76,6 +81,7 @@ class EnrichmentTests {
         stationSerde.configure(schemaRegistryConfig, false);        
 
         Topology topology = EnrichmentTopology.kafkaStreamTopology(MOCK_SCHEMA_REGISTRY_URL);
+        logger.info(topology.describe().toString());
         testDriver = new TopologyTestDriver(topology, config);        
 
         rawInputTopic = testDriver.createInputTopic(
