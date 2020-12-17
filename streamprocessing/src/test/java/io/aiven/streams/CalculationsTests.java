@@ -1,20 +1,12 @@
 package io.aiven.streams;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericData;
-import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KeyValue;
@@ -26,6 +18,8 @@ import org.apache.kafka.streams.TopologyTestDriver;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerde;
 import org.springframework.kafka.support.serializer.JsonSerializer;
@@ -41,6 +35,9 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 class CalculationsTests {
+
+    private Logger logger = LoggerFactory.getLogger(CalculationsTests.class);
+
     private static final String SCHEMA_REGISTRY_SCOPE = CalculationsTests.class.getName();
     private static final String MOCK_SCHEMA_REGISTRY_URL = "mock://" + SCHEMA_REGISTRY_SCOPE;
 
@@ -51,7 +48,7 @@ class CalculationsTests {
     
     @BeforeEach
     public void setup() throws IOException, RestClientException {        
-
+        
 
         Map<String, String> schemaRegistryConfig = Collections
         .singletonMap(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, MOCK_SCHEMA_REGISTRY_URL);
@@ -75,6 +72,7 @@ class CalculationsTests {
         config.setProperty(JsonDeserializer.VALUE_DEFAULT_TYPE, JsonNode.class.getName());
 
         Topology topology = CalculationsTopology.kafkaStreamTopology(MOCK_SCHEMA_REGISTRY_URL);
+        logger.info(topology.describe().toString());
         testDriver = new TopologyTestDriver(topology, config);               
 
         avgOutputTopic = testDriver.createOutputTopic(
@@ -121,7 +119,7 @@ class CalculationsTests {
             .setSensorValue(2.0f)
             .setSensorUnit("C")
             .setMeasuredTime(Instant.parse("2020-12-02T21:11:00Z").toEpochMilli()).build());
-
+            
         assertThat(avgOutputTopic.readKeyValue(), equalTo(new KeyValue<>("12016", 
             DigitrafficAggregate.newBuilder()
                 .setId(1)

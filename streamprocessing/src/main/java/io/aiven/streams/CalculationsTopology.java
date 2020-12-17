@@ -6,13 +6,11 @@ import java.util.Map;
 
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.*;
 import org.apache.kafka.streams.kstream.Suppressed.BufferConfig;
-import org.apache.kafka.streams.state.WindowStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,8 +22,6 @@ import fi.saily.tmsdemo.CountAndSum;
 import fi.saily.tmsdemo.DigitrafficAggregate;
 import fi.saily.tmsdemo.DigitrafficMessage;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
-
-import static org.apache.kafka.streams.kstream.WindowedSerdes.timeWindowedSerdeFrom;
 
 @Component
 @Profile("calculations")
