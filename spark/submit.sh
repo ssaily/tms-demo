@@ -1,6 +1,6 @@
 log4f_properties="src/main/resources/log4j.properties"
 log4j_setting="-Dlog4j.configuration=file:${log4f_properties}"
-/Users/samisaily//work/spark-3.0.1-bin-hadoop3.2/bin/spark-submit \
+$SPARK_HOME/bin/spark-submit \
 --master local[8] \
 --conf spark.executor.instances=1 \
 --driver-java-options="${log4j_setting}" \
