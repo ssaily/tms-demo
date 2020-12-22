@@ -10,26 +10,28 @@ import org.apache.log4j.{LogManager, Level}
 import org.apache.spark.sql.expressions.Window
 
 object SparkExample {
-    val log = LogManager.getLogger(SparkExample.getClass())
     
-    val registryConfig = Map(
-        AbrisConfig.SCHEMA_REGISTRY_URL -> "https://tms-demo-kafka-sa-demo.aivencloud.com:24952",
-        "basic.auth.credentials.source" -> "USER_INFO",
-        "basic.auth.user.info" -> ""
-        )
 
-    val abrisConfig = AbrisConfig
-    .fromConfluentAvro
-    .downloadReaderSchemaByLatestVersion
-    .andTopicNameStrategy("observations.weather.municipality", isKey=false)
-    .usingSchemaRegistry(registryConfig) // use the map instead of just url
+    def main(args: Array[String]) {     
+        val log = LogManager.getLogger(SparkExample.getClass())
+    
+        val registryConfig = Map(
+            AbrisConfig.SCHEMA_REGISTRY_URL -> "https://tms-demo-kafka-sa-demo.aivencloud.com:24952",
+            "basic.auth.credentials.source" -> "USER_INFO",
+            "basic.auth.user.info" -> ""
+            )
 
-    import za.co.absa.abris.avro.functions.from_avro    
-    def readAvro(dataFrame: DataFrame, fromAvroConfig: FromAvroConfig): DataFrame = {
-       dataFrame.select(from_avro(col("value"), fromAvroConfig) as 'data).select("data.*")
-    }
+        val abrisConfig = AbrisConfig
+        .fromConfluentAvro
+        .downloadReaderSchemaByLatestVersion
+        .andTopicNameStrategy("observations.weather.municipality", isKey=false)
+        .usingSchemaRegistry(registryConfig) // use the map instead of just url
 
-    def main(args: Array[String]) {        
+        import za.co.absa.abris.avro.functions.from_avro    
+        def readAvro(dataFrame: DataFrame, fromAvroConfig: FromAvroConfig): DataFrame = {
+        dataFrame.select(from_avro(col("value"), fromAvroConfig) as 'data).select("data.*")
+        }
+        
         log.info("Starting")
         val spark = SparkSession
         .builder
