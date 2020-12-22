@@ -15,7 +15,7 @@ object SparkExample {
     val registryConfig = Map(
         AbrisConfig.SCHEMA_REGISTRY_URL -> "https://tms-demo-kafka-sa-demo.aivencloud.com:24952",
         "basic.auth.credentials.source" -> "USER_INFO",
-        "basic.auth.user.info" -> "avnadmin:msee1ipnpe8ch39u"
+        "basic.auth.user.info" -> ""
         )
 
     val abrisConfig = AbrisConfig
