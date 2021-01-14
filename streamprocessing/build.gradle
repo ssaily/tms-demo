@@ -34,7 +34,7 @@ dependencies {
 	testImplementation('org.springframework.boot:spring-boot-starter-test') {
 		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
 	}
-	testImplementation 'org.apache.kafka:kafka-streams-test-utils'
+	testImplementation 'org.apache.kafka:kafka-streams-test-utils:2.6.0'
 }
 
 test {

@@ -6,6 +6,7 @@ resource "aiven_kafka" "tms-demo-kafka" {
   service_name = "tms-demo-kafka"
   maintenance_window_dow = "monday"
   maintenance_window_time = "10:00:00"
+  default_acl = false
 
   kafka_user_config {
     // Enables Kafka Schemas

@@ -17,17 +17,19 @@ object SparkExampleS3 {
 
         import spark.implicits._
     
-        val df = spark.read.format("avro").load("s3a://tmsdemo/topics/observations.weather.municipality/processdate=20201218/")
+        val df = spark.read.format("avro").load("s3a://<bucket>")
                     
         val byRange = df
-            .filter(col("id") === 1)
-            .filter(col("roadStationId") === 7031)
-            .withColumn("Date", to_timestamp($"measuredTime" / 1000))
+            .withColumn("Date", to_timestamp($"measuredTime" / 1000))            
+            .filter(col("Date") >= "2020-12-22 11:00:00Z")
+            .filter(col("Date") < "2020-12-22 13:00:00Z")
             .groupBy(col("roadStationId"), window(col("Date"), "1 hour"))
-            .agg(avg("sensorValue").as("avgTemp"), count("*").as("count"))      
+            .agg(count("*").as("count"))      
             
         //show the data
-        byRange.orderBy(col("roadStationId"), col("window.start")).show(truncate=false);
-        
+        byRange.orderBy(col("roadStationId"), col("window.start"))
+        .select(col("roadStationId"), col("window.start"), col("count"))
+        .coalesce(1)
+        .write.format("csv").save("out/results_s3.csv")
     }
 }

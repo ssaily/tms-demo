@@ -62,16 +62,16 @@ object SparkExample {
         log.info(deserialized.schema.toString())       
 
         val byRange = deserialized
-            .filter(col("id") === 1)
-            .filter(col("roadStationId") === 7031)
             .withColumn("Date", to_timestamp($"measuredTime" / 1000))
+            .filter(col("Date") >= "2020-12-22 11:00:00Z")
+            .filter(col("Date") < "2020-12-22 13:00:00Z")
             .groupBy(col("roadStationId"), window(col("Date"), "1 hour"))
-            .agg(avg("sensorValue").as("avgTemp"), count("*").as("count"))      
+            .agg(count("*").as("count"))      
             
         //show the data
-        byRange.orderBy(col("roadStationId"), col("window.start")).show(truncate=false);
-
-        //withDates.show(100)
-        
+        byRange.orderBy(col("roadStationId"), col("window.start"))
+        .select(col("roadStationId"), col("window.start"), col("count"))
+        .coalesce(1)
+        .write.format("csv").save("out/results_kafka.csv")
     }
 }
