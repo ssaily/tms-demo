@@ -58,6 +58,10 @@ spec:
             value: $(SCHEMA_REGISTRY)
           - name: KSQL_CONFLUENT_SUPPORT_METRICS_ENABLE
             value: "false"
+          - name: KSQL_KSQL_SCHEMA_REGISTRY_SSL_TRUSTSTORE_LOCATION
+            value: /etc/streams/tms-processing-cert/schema_registry.truststore.jks
+          - name: KSQL_KSQL_SCHEMA_REGISTRY_SSL_TRUSTSTORE_PASSWORD
+            value: $(truststore-password)
         volumeMounts:
           - mountPath: /etc/streams/tms-processing-cert
             name: tms-processing-cert
@@ -78,3 +82,5 @@ spec:
               path: client.keystore.p12
             - key: client.truststore.jks
               path: client.truststore.jks
+            - key: schema_registry.truststore.jks
+              path: schema_registry.truststore.jks
