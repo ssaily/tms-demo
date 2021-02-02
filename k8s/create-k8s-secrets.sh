@@ -12,6 +12,7 @@ kubectl create secret generic tms-processing-cert \
 --from-file=../tms-secrets/processing/ca.pem \
 --from-file=../tms-secrets/processing/client.keystore.p12 \
 --from-file=../tms-secrets/processing/client.truststore.jks \
+--from-file=../tms-secrets/schema_registry.truststore.jks \
 -n tms-demo
 kubectl create secret generic tms-sink-cert \
 --from-file=../tms-secrets/sink/service.cert \

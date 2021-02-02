@@ -90,6 +90,18 @@ resource "aiven_kafka_acl" "tms-processing-admin-acl" {
   ]
 }
 
+# adming access for KSQLDB topics 
+resource "aiven_kafka_acl" "tms-processing-ksql-acl" {
+  project = var.avn_project_id
+  service_name = aiven_kafka.tms-demo-kafka.service_name
+  permission = "admin"
+  username = aiven_service_user.tms-processing-user.username
+  topic = "_confluent-ksql-tms_demo_ksqldb_*"
+  depends_on = [
+    aiven_kafka.tms-demo-kafka
+  ]
+}
+
 resource "aiven_kafka_acl" "tms-sink-acl" {
   project = var.avn_project_id
   service_name = aiven_kafka.tms-demo-kafka.service_name

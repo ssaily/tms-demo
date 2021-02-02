@@ -19,6 +19,12 @@ terraform apply
 ./get-demo-secrets.sh <aiven-project-name>
 ````
 
+### Import weather station metadata to PostgreSQL db
+```
+cd producer
+./import-stations.sh
+```
+
 ## Create k8s resources
 ````
 cd k8s
@@ -29,16 +35,9 @@ cd k8s
 kubectl apply -f namespace.yaml
 ```
 
-
 ### Secrets
 ```
 ./create-k8s-secrets.sh
-```
-
-### Import weather station metadata
-```
-cd producer
-./import-stations.sh
 ```
 
 ### Deployments
@@ -46,5 +45,6 @@ cd producer
 kubectl apply -f deploy-ingest.yaml
 kubectl apply -f deploy-processing.yaml
 kubectl apply -f deploy-sink.yaml
+kubectl apply -f ksqldb.yaml
 ```
 

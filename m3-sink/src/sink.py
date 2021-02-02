@@ -34,7 +34,11 @@ def flush_buffer(buffer: list):
     payload = str("\n".join(buffer))    
     response = requests.post(influxdb_client, data=payload, 
     auth=(influxdb_cred.split(":")[0],influxdb_cred.split(":")[1]), 
-    headers={'Content-Type': 'application/x-www-form-urlencoded'})                                        
+    headers={'Content-Type': 'application/x-www-form-urlencoded'})
+    if response.status_code == 400:
+        print(f"{response.text} Skipping too old records")
+        buffer.clear()
+        return True
     if response.status_code != 204:        
         print(f"Failed to store to M3 {response.status_code}\n{response.text}")
         return False
