@@ -14,17 +14,24 @@ schema_registry = CachedSchemaRegistryClient(os.getenv("SCHEMA_REGISTRY"))
 avro_serde = AvroSerde(schema_registry)
 deserialize_avro = avro_serde.decode_message
 
+def get_name_or_default(name):
+    if not name:
+        return "-"
+    else:
+        return bytes(name, 'utf-8').decode('unicode-escape').replace(" ", "_")
+
 def to_buffer(buffer: list, message):
     try:                    
         value = deserialize_avro(message=message.value(), is_key=False)
     except Exception as e:                    
         print(f"Failed deserialize avro payload: {message.value()}\n{e}")
     else:
-        buffer.append("{measurement},roadStationId={road_station_id},name={name},municipality={municipality},geohash={geohash} sensorValue={sensor_value} {timestamp}"                    
+        buffer.append("{measurement},roadStationId={road_station_id},name={name},municipality={municipality},province={province},geohash={geohash} sensorValue={sensor_value} {timestamp}"                    
             .format(measurement="observations",
                     road_station_id=value["roadStationId"],
                     name=value["name"],
-                    municipality=bytes(value["municipality"], 'utf-8').decode('unicode-escape').replace(" ", "_"),
+                    municipality=get_name_or_default(value["municipality"]),
+                    province=get_name_or_default(value["province"]),
                     geohash=value["geohash"],
                     sensor_value=value["sensorValue"],
                     timestamp=value["measuredTime"] * 1000 * 1000))
