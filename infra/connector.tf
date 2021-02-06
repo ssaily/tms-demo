@@ -39,6 +39,7 @@ resource "aiven_kafka_connector" "kafka-pg-cdc" {
     "value.converter.schemas.enable": "true",
     "connector.class": "io.debezium.connector.postgresql.PostgresConnector",    
     "name": "kafka-pg-cdc",
+    "slot.name": "weatherstations",
     "database.hostname": data.aiven_service_component.tms_pg.host,
     "database.port": data.aiven_service_component.tms_pg.port,
     "database.user": data.aiven_service_user.pg_admin.username,
@@ -59,8 +60,48 @@ resource "aiven_kafka_connector" "kafka-pg-cdc" {
   }
 
   depends_on = [ 
-    aiven_kafka_connect.tms-demo-kafka-connect1,
-    aiven_kafka.tms-demo-kafka,
+    aiven_service_integration.tms-demo-connect-integr,
+    aiven_service.tms-demo-pg
+  ]
+}
+
+resource "aiven_kafka_connector" "kafka-pg-cdc-sensors" {
+  project = var.avn_project_id
+  service_name = aiven_kafka_connect.tms-demo-kafka-connect1.service_name
+  connector_name = "kafka-pg-cdc-sensors"
+
+  config = {  
+    "_aiven.restart.on.failure": "true",
+    "key.converter" : "org.apache.kafka.connect.storage.StringConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter": "io.confluent.connect.avro.AvroConverter",
+    "value.converter.schema.registry.url": local.schema_registry_uri,
+    "value.converter.basic.auth.credentials.source": "URL",
+    "value.converter.schemas.enable": "true",
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",    
+    "name": "kafka-pg-cdc-sensors",
+    "slot.name": "weathersensors",
+    "database.hostname": data.aiven_service_component.tms_pg.host,
+    "database.port": data.aiven_service_component.tms_pg.port,
+    "database.user": data.aiven_service_user.pg_admin.username,
+    "database.password": data.aiven_service_user.pg_admin.password,
+    "database.dbname": "defaultdb",
+    "database.server.name": "tms-demo-pg",
+    "table.whitelist": "public.weather_sensors",
+    "plugin.name": "wal2json",
+    "database.sslmode": "require",
+    "transforms": "unwrap,insertKey,extractKey",
+    "transforms.unwrap.type":"io.debezium.transforms.UnwrapFromEnvelope",
+    "transforms.unwrap.drop.tombstones":"false",
+    "transforms.insertKey.type":"org.apache.kafka.connect.transforms.ValueToKey",
+    "transforms.insertKey.fields":"sensorid",
+    "transforms.extractKey.type":"org.apache.kafka.connect.transforms.ExtractField$Key",
+    "transforms.extractKey.field":"sensorid",
+    "include.schema.changes": "false"
+  }
+
+  depends_on = [ 
+    aiven_service_integration.tms-demo-connect-integr,
     aiven_service.tms-demo-pg
   ]
 }

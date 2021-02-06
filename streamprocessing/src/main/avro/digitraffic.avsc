@@ -33,6 +33,11 @@
             "default": ""
         },
         {
+            "name": "province",
+            "type": "string",
+            "default": ""
+        },
+        {
             "name": "geohash",
             "type": "string",
             "default": ""

@@ -55,4 +55,9 @@ resource "aiven_service_integration" "tms-demo-connect-integr" {
       config_storage_topic = "__connect_1_configs"
     }
   }
+
+  depends_on = [
+    aiven_kafka.tms-demo-kafka,
+    aiven_kafka_connect.tms-demo-kafka-connect1
+  ]
 }
