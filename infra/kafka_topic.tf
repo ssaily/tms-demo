@@ -79,3 +79,18 @@ resource "aiven_kafka_topic" "stations-weather" {
   ]
 }
 
+resource "aiven_kafka_topic" "sensors-weather" {
+  project = var.avn_project_id
+  service_name = aiven_kafka.tms-demo-kafka.service_name
+  topic_name = "tms-demo-pg.public.weather_sensors"
+  partitions = 20
+  replication = 2  
+  config {    
+    cleanup_policy = "compact"
+    min_insync_replicas = 1
+  }
+  depends_on = [
+    aiven_kafka.tms-demo-kafka
+  ]
+}
+
