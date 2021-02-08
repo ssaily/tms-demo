@@ -95,3 +95,52 @@ spec:
               path: client.keystore.p12
             - key: client.truststore.jks
               path: client.truststore.jks
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tms-demo-multivariate
+  namespace: tms-demo
+  labels:
+    app: tms-demo-multivariate
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tms-demo-multivariate
+  template:
+    metadata:
+      labels:
+        app: tms-demo-multivariate
+    spec:
+      containers:      
+      - name: tms-demo-multivariate
+        image: ssaily/tms-demo-processing:0.4.0
+        env:
+          - name: SPRING_PROFILES_ACTIVE
+            value: multivariate
+        envFrom:
+          - secretRef:
+              name: kafka-secrets        
+          - secretRef: 
+              name: tms-service-endpoint
+        volumeMounts:
+        - mountPath: /etc/streams/tms-processing-cert
+          name: tms-processing-cert
+        resources:
+          limits:
+            memory: 512Mi
+            cpu: "1"
+          requests:
+            memory: 256Mi
+            cpu: "100m"
+        imagePullPolicy: Always      
+      volumes:
+        - name: tms-processing-cert
+          secret:
+            secretName: tms-processing-cert
+            items:
+            - key: client.keystore.p12
+              path: client.keystore.p12
+            - key: client.truststore.jks
+              path: client.truststore.jks
