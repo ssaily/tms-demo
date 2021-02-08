@@ -72,7 +72,7 @@ resource "aiven_kafka_acl" "tms-processing-read-acl" {
   service_name = aiven_kafka.tms-demo-kafka.service_name
   permission = "read"
   username = aiven_service_user.tms-processing-user.username
-  topic = "tms-demo-pg.public.weather_stations"
+  topic = "tms-demo-pg.public.*"
   depends_on = [
     aiven_kafka.tms-demo-kafka
   ]

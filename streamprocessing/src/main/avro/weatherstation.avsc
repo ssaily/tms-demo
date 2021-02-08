@@ -16,6 +16,10 @@
             "type": "string"          
         },
         {
+            "name": "province",
+            "type": "string"          
+        },
+        {
             "name": "geohash",
             "type": "string"            
         }

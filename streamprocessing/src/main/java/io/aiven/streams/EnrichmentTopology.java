@@ -60,7 +60,9 @@ public class EnrichmentTopology {
             .setRoadStationId((Integer)value.get("roadstationid"))
             .setGeohash(calculateGeohash(value))
             .setName("")
-            .setMunicipality(value.get("municipality").toString()).build());        
+            .setMunicipality(value.get("municipality") != null ? value.get("municipality").toString() : "")
+            .setProvince(value.get("province") != null ? value.get("province").toString() : "")
+            .build());        
 
         KStream<String, JsonNode> jsonWeatherStream = streamsBuilder.stream("observations.weather.raw", 
             Consumed.with(Serdes.String(), new JsonSerde<>(JsonNode.class)));
@@ -79,6 +81,7 @@ public class EnrichmentTopology {
         .join(stationTable, (measurement, station) -> 
             DigitrafficMessage.newBuilder(measurement)
             .setMunicipality(StringEscapeUtils.unescapeJava(station.getMunicipality()))
+            .setProvince(StringEscapeUtils.unescapeJava(station.getProvince()))
             .setGeohash(station.getGeohash())            
             .build()
         )        

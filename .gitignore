@@ -7,8 +7,16 @@ build/
 !**/src/test/**/build/
 **/.DS_Store
 
+**/.metals
+**/.bloop
+**/.bsp
+spark/project
+spark/target
+
 ### Secrets ###
 tms-secrets/*
+**/*.p12
+**/*.jks
 
 ### STS ###
 .apt_generated

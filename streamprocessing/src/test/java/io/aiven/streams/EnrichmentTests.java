@@ -127,6 +127,7 @@ class EnrichmentTests {
         record.put("roadstationid", 12016);
         record.put("name", "somename");
         record.put("municipality", "Kärsämäki");
+        record.put("province", "Pohjois-Pohjanmaa");
         record.put("latitude", 64.006442);
         record.put("longitude", 25.755648);
         
@@ -148,6 +149,7 @@ class EnrichmentTests {
                 .setSensorValue(0.0f)
                 .setSensorUnit("###")
                 .setMunicipality("Kärsämäki")
+                .setProvince("Pohjois-Pohjanmaa")
                 .setGeohash("ue6k4h")
                 .setMeasuredTime(Instant.parse("2020-12-02T20:42:00Z").toEpochMilli()).build())));
         
