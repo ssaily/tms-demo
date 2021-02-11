@@ -13,6 +13,8 @@ build/
 spark/project
 spark/target
 
+**/.ipynb_checkpoints
+
 ### Secrets ###
 tms-secrets/*
 **/*.p12

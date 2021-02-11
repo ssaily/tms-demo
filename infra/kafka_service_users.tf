@@ -66,7 +66,7 @@ resource "aiven_kafka_acl" "tms-processing-acl" {
   ]
 }
 
-# read access to PostgeSQL CDC weather station topic
+# read access to PostgeSQL CDC topics
 resource "aiven_kafka_acl" "tms-processing-read-acl" {
   project = var.avn_project_id
   service_name = aiven_kafka.tms-demo-kafka.service_name

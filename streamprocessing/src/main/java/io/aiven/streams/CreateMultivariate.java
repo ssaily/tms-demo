@@ -1,7 +1,6 @@
 package io.aiven.streams;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,9 +20,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import fi.saily.tmsdemo.CountAndSum;
-import fi.saily.tmsdemo.DigitrafficAggregate;
 import fi.saily.tmsdemo.DigitrafficMessage;
+import fi.saily.tmsdemo.DigitrafficMessageMV;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 
 @Component
@@ -46,28 +44,39 @@ public class CreateMultivariate {
         Map<String, String> serdeConfig = new HashMap<>();
         serdeConfig.put("schema.registry.url", schemaRegistryUrl);
         serdeConfig.put("basic.auth.credentials.source", "URL");
-        Serde<DigitrafficMessage> valueSerde = new SpecificAvroSerde<>();
-        Serde<DigitrafficAggregate> resultSerde = new SpecificAvroSerde<>();        
-        
+        final Serde<DigitrafficMessage> valueSerde = new SpecificAvroSerde<>();
+        final Serde<DigitrafficMessageMV> valueMvSerde = new SpecificAvroSerde<>(); 
         valueSerde.configure(serdeConfig, false);
-        resultSerde.configure(serdeConfig, false);
+        valueMvSerde.configure(serdeConfig, false);
 
         Grouped<String, DigitrafficMessage> groupedMessage = Grouped.with(Serdes.String(), valueSerde);
         
-        streamsBuilder.stream("observations.weather.municipality", 
+        streamsBuilder.stream("observations.weather.processed", 
             Consumed.with(Serdes.String(), valueSerde).withTimestampExtractor(new ObservationTimestampExtractor()))        
         .filter((k, v) -> v.getName() != null)        
         .groupByKey(groupedMessage) 
         .windowedBy(SessionWindows.with(Duration.ofMinutes(1)).grace(Duration.ofMinutes(2)))                
         .aggregate(
-            () -> 0L, /* initializer */
-            (aggKey, newValue, aggValue) -> aggValue = aggValue + 1, /* adder */
-            (aggKey, leftAggValue, rightAggValue) -> leftAggValue + rightAggValue, /* session merger */
-                Materialized.<String, Long, SessionStore<Bytes, byte[]>>as("sessionized-aggregated-stream-store") /* state store name */
-            .withValueSerde(Serdes.Long())) /* serde for aggregate value */
+            () -> new DigitrafficMessageMV(0, 0L, new HashMap<>()) , /* initializer */
+            (aggKey, newValue, aggValue) -> {
+                if (aggValue.getRoadStationId() == 0) {
+                    aggValue.setRoadStationId(newValue.getRoadStationId());
+                    aggValue.setMeasuredTime(newValue.getMeasuredTime());
+                }
+                Map<String, Double> m = aggValue.getMeasurements();
+                m.put(newValue.getId().toString(), newValue.getSensorValue());
+                return aggValue;                
+            }, /* adder */
+            (aggKey, leftAggValue, rightAggValue) -> {
+                leftAggValue.getMeasurements().putAll(rightAggValue.getMeasurements());
+                return leftAggValue;
+            }, /* session merger */
+                Materialized.<String, DigitrafficMessageMV, SessionStore<Bytes, byte[]>>as("sessionized-aggregated-stream-store") /* state store name */
+            .withValueSerde(valueMvSerde)) /* serde for aggregate value */
+        .suppress(Suppressed.untilWindowCloses(BufferConfig.unbounded()))
         .toStream()
-        .foreach((key, value) -> System.out.println(key + " => " + value));
- 
+        .map((key, value) -> new KeyValue<>(value.getRoadStationId().toString(), value))
+        .to("observations.weather.multivariate", Produced.with(Serdes.String(), valueMvSerde));
         
         
         return streamsBuilder.build();

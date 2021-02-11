@@ -1,0 +1,19 @@
+{
+    "name": "DigitrafficMessageMV",
+    "namespace": "fi.saily.tmsdemo",
+    "type": "record",
+    "fields" : [        
+        {
+            "name": "roadStationId",
+            "type": "int"
+        },
+        {
+            "name": "measuredTime",
+            "type": "long"
+        },
+        {
+            "name": "measurements",
+            "type": {"type": "map", "values": "double"}
+        }
+    ]
+}
