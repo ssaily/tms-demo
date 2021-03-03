@@ -12,6 +12,18 @@
             "type": "long"
         },
         {
+            "name": "municipality",
+            "type": "string"         
+        },
+        {
+            "name": "province",
+            "type": "string"
+        },
+        {
+            "name": "geohash",
+            "type": "string"
+        },
+        {
             "name": "measurements",
             "type": {"type": "map", "values": "double"}
         }

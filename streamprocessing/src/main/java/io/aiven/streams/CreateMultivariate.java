@@ -51,20 +51,23 @@ public class CreateMultivariate {
 
         Grouped<String, DigitrafficMessage> groupedMessage = Grouped.with(Serdes.String(), valueSerde);
         
-        streamsBuilder.stream("observations.weather.processed", 
+        streamsBuilder.stream("observations.weather.municipality", 
             Consumed.with(Serdes.String(), valueSerde).withTimestampExtractor(new ObservationTimestampExtractor()))        
         .filter((k, v) -> v.getName() != null)        
         .groupByKey(groupedMessage) 
         .windowedBy(SessionWindows.with(Duration.ofMinutes(1)).grace(Duration.ofMinutes(15)))                
         .aggregate(
-            () -> new DigitrafficMessageMV(0, 0L, new HashMap<>()) , /* initializer */
+            () -> new DigitrafficMessageMV(-1, 0L, "", "", "", new HashMap<>()) , /* initializer */
             (aggKey, newValue, aggValue) -> {
-                if (aggValue.getRoadStationId() == 0) {
+                if (aggValue.getRoadStationId() < 0) {
+                    aggValue.setMunicipality(newValue.getMunicipality());
+                    aggValue.setProvince(newValue.getProvince());
+                    aggValue.setGeohash(newValue.getGeohash());
                     aggValue.setRoadStationId(newValue.getRoadStationId());
                     aggValue.setMeasuredTime(newValue.getMeasuredTime());
                 }
                 Map<String, Double> m = aggValue.getMeasurements();
-                m.put(newValue.getId().toString(), newValue.getSensorValue());
+                m.put(newValue.getName(), newValue.getSensorValue());
                 return aggValue;                
             }, /* adder */
             (aggKey, leftAggValue, rightAggValue) -> {
