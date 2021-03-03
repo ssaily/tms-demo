@@ -102,12 +102,13 @@ resource "aiven_kafka_acl" "tms-processing-ksql-acl" {
   ]
 }
 
+#read access for M3 sink service
 resource "aiven_kafka_acl" "tms-sink-acl" {
   project = var.avn_project_id
   service_name = aiven_kafka.tms-demo-kafka.service_name
   permission = "read"
   username = aiven_service_user.tms-sink-user.username
-  topic = aiven_kafka_topic.observations-weather-municipality.topic_name
+  topic = "observations.weather.*"
   depends_on = [
     aiven_kafka.tms-demo-kafka
   ]

@@ -10,7 +10,20 @@ import os
 influxdb_client = os.getenv("M3_INFLUXDB_URL").rstrip()
 influxdb_cred = os.getenv("M3_INFLUXDB_CREDENTIALS").rstrip()
 group_name = "tms-demo-m3-sink"
-schema_registry = CachedSchemaRegistryClient(os.getenv("SCHEMA_REGISTRY"))
+
+consumer_config = {"bootstrap.servers": os.getenv("BOOTSTRAP_SERVERS"),                        
+                        "group.id": group_name,
+                        "max.poll.interval.ms": 30000,
+                        "session.timeout.ms": 20000,
+                        "default.topic.config": {"auto.offset.reset": "latest"},
+                        "security.protocol": "SSL",
+                        "ssl.ca.location": "/etc/streams/tms-sink-cert/ca.pem",
+                        "ssl.certificate.location": "/etc/streams/tms-sink-cert/service.cert",
+                        "ssl.key.location": "/etc/streams/tms-sink-cert/service.key"
+                       }
+
+schema_registry_config = {"url": os.getenv("SCHEMA_REGISTRY")}
+schema_registry = CachedSchemaRegistryClient(schema_registry_config)
 avro_serde = AvroSerde(schema_registry)
 deserialize_avro = avro_serde.decode_message
 
@@ -22,19 +35,30 @@ def get_name_or_default(name):
 
 def to_buffer(buffer: list, message):
     try:                    
-        value = deserialize_avro(message=message.value(), is_key=False)
+        deserialized_message = deserialize_avro(message=message.value(), is_key=False)        
     except Exception as e:                    
         print(f"Failed deserialize avro payload: {message.value()}\n{e}")
     else:
-        buffer.append("{measurement},roadStationId={road_station_id},name={name},municipality={municipality},province={province},geohash={geohash} sensorValue={sensor_value} {timestamp}"                    
-            .format(measurement="observations",
-                    road_station_id=value["roadStationId"],
-                    name=value["name"],
-                    municipality=get_name_or_default(value["municipality"]),
-                    province=get_name_or_default(value["province"]),
-                    geohash=value["geohash"],
-                    sensor_value=value["sensorValue"],
-                    timestamp=value["measuredTime"] * 1000 * 1000))
+        values = []
+        values_str = ''
+        measurement_name = ''
+        if message.topic() == 'observations.weather.multivariate':
+            measurement_name = 'observations_mv'
+            for key, value in deserialized_message['measurements'].items():
+                values.append(key + '=' + str(value))
+            values_str = ','.join(values)
+        else:
+            measurement_name = 'observations'
+            values_str = f'sensorValue={deserialized_message["sensorValue"]}'
+
+        buffer.append("{measurement},roadStationId={road_station_id},municipality={municipality},province={province},geohash={geohash} {sensor_values} {timestamp}"                    
+            .format(measurement=measurement_name,
+                    road_station_id=deserialized_message["roadStationId"],                    
+                    municipality=get_name_or_default(deserialized_message["municipality"]),
+                    province=get_name_or_default(deserialized_message["province"]),
+                    geohash=deserialized_message["geohash"],
+                    sensor_values=values_str,
+                    timestamp=deserialized_message["measuredTime"] * 1000 * 1000))
 
 def flush_buffer(buffer: list):
     print(f"Flushing {len(buffer)} records to M3")
@@ -54,20 +78,8 @@ def flush_buffer(buffer: list):
     return True
 
 def consume_record(lines: list):    
-
-    consumer_config = {"bootstrap.servers": os.getenv("BOOTSTRAP_SERVERS"),                        
-                        "group.id": group_name,
-                        "max.poll.interval.ms": 30000,
-                        "session.timeout.ms": 20000,
-                        "default.topic.config": {"auto.offset.reset": "latest"},
-                        "security.protocol": "SSL",
-                        "ssl.ca.location": "/etc/streams/tms-sink-cert/ca.pem",
-                        "ssl.certificate.location": "/etc/streams/tms-sink-cert/service.cert",
-                        "ssl.key.location": "/etc/streams/tms-sink-cert/service.key"
-                       }
-
     consumer = Consumer(consumer_config)    
-    consumer.subscribe(["observations.weather.municipality"])
+    consumer.subscribe(["observations.weather.multivariate", "observations.weather.municipality"])
 
     while True:
         try:

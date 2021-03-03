@@ -17,7 +17,7 @@ spec:
     spec:
       containers:      
       - name: tms-demo-enrichment
-        image: ssaily/tms-demo-processing:0.4.1
+        image: ssaily/tms-demo-processing:0.4.2
         env:
           - name: SPRING_PROFILES_ACTIVE
             value: enrichment
@@ -66,7 +66,7 @@ spec:
     spec:
       containers:      
       - name: tms-demo-calculations
-        image: ssaily/tms-demo-processing:0.4.1
+        image: ssaily/tms-demo-processing:0.4.2
         env:
           - name: SPRING_PROFILES_ACTIVE
             value: calculations
@@ -115,7 +115,7 @@ spec:
     spec:
       containers:      
       - name: tms-demo-multivariate
-        image: ssaily/tms-demo-processing:0.4.1
+        image: ssaily/tms-demo-processing:0.4.2
         env:
           - name: SPRING_PROFILES_ACTIVE
             value: multivariate
