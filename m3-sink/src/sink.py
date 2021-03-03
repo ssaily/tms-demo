@@ -40,23 +40,27 @@ def to_buffer(buffer: list, message):
         print(f"Failed deserialize avro payload: {message.value()}\n{e}")
     else:
         values = []
+        sensor_name_str = ''
         values_str = ''
         measurement_name = ''
         if message.topic() == 'observations.weather.multivariate':
+            sensor_name_str = 'all'
             measurement_name = 'observations_mv'
             for key, value in deserialized_message['measurements'].items():
                 values.append(key + '=' + str(value))
             values_str = ','.join(values)
         else:
             measurement_name = 'observations'
+            sensor_name_str = deserialized_message["name"]
             values_str = f'sensorValue={deserialized_message["sensorValue"]}'
 
-        buffer.append("{measurement},roadStationId={road_station_id},municipality={municipality},province={province},geohash={geohash} {sensor_values} {timestamp}"                    
+        buffer.append("{measurement},roadStationId={road_station_id},municipality={municipality},province={province},geohash={geohash},name={sensor_name} {sensor_values} {timestamp}"                    
             .format(measurement=measurement_name,
                     road_station_id=deserialized_message["roadStationId"],                    
                     municipality=get_name_or_default(deserialized_message["municipality"]),
                     province=get_name_or_default(deserialized_message["province"]),
                     geohash=deserialized_message["geohash"],
+                    sensor_name=sensor_name_str,
                     sensor_values=values_str,
                     timestamp=deserialized_message["measuredTime"] * 1000 * 1000))
 
