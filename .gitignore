@@ -14,11 +14,13 @@ spark/project
 spark/target
 
 **/.ipynb_checkpoints
+**/.python-version
 
 ### Secrets ###
 tms-secrets/*
 **/*.p12
 **/*.jks
+**/*.pem
 
 ### STS ###
 .apt_generated
@@ -55,6 +57,7 @@ out/
 # .tfstate files
 **/*.tfstate
 **/*.tfstate.*
+**/.terraform.lock.hcl
 
 # Crash log files
 crash.log

@@ -21,7 +21,7 @@ terraform apply
 
 ### Import weather station metadata to PostgreSQL db
 ```
-cd producer
+cd database
 ./import-stations.sh
 ```
 
