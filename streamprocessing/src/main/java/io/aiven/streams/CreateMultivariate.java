@@ -74,7 +74,7 @@ public class CreateMultivariate {
                 leftAggValue.getMeasurements().putAll(rightAggValue.getMeasurements());
                 return leftAggValue;
             }, /* session merger */
-                Materialized.<String, DigitrafficMessageMV, SessionStore<Bytes, byte[]>>as("sessionized-aggregated-stream-store") /* state store name */
+                Materialized.<String, DigitrafficMessageMV, SessionStore<Bytes, byte[]>>as("multivariate-state-store")
             .withValueSerde(valueMvSerde)) /* serde for aggregate value */
         .suppress(Suppressed.untilWindowCloses(BufferConfig.unbounded()))
         .toStream()
