@@ -19,7 +19,7 @@ terraform apply
 ./get-demo-secrets.sh <aiven-project-name>
 ````
 
-### Import weather station metadata to PostgreSQL db
+## Import weather station metadata to PostgreSQL db
 ```
 cd database
 ./import-stations.sh
