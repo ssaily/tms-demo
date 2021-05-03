@@ -21,6 +21,7 @@ tms-secrets/*
 **/*.p12
 **/*.jks
 **/*.pem
+**/token
 
 ### STS ###
 .apt_generated

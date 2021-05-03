@@ -135,8 +135,8 @@ spec:
           name: tms-processing-cert
         resources:
           limits:
-            memory: 512Mi
-            cpu: "1"
+            memory: 1024Mi
+            cpu: "2"
           requests:
             memory: 256Mi
             cpu: "100m"
