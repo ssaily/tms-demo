@@ -5,7 +5,7 @@ RUN groupadd $APP_USER && useradd -m -g $APP_USER -l $APP_USER
 RUN mkdir -p $APP_HOME && chown -R $APP_USER:$APP_USER $APP_HOME
 WORKDIR $APP_HOME
 USER $APP_USER
-RUN git clone --branch basic-auth-support https://github.com/ssaily/highlander.git
+COPY --chown=$APP_USER:$APP_USER highlander/ highlander
 RUN cd highlander && make
 FROM golang:1.15
 ENV APP_USER highlander
