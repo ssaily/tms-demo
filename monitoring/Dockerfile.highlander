@@ -17,4 +17,3 @@ COPY --chown=0:0 --from=builder $APP_HOME/highlander/build/highlander $APP_HOME
 EXPOSE 9092
 USER $APP_USER
 ENTRYPOINT exec ./highlander -r $M3_URL -u $M3_USER -p $M3_PASSWORD -l 0.0.0.0:9092
-#CMD ["./highlander"]
