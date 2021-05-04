@@ -11,6 +11,11 @@ avn service user-create --project <aiven-project> --username <write user> --m3-g
 Now create another user to be used for Grafana Prometheus data source
 
 avn service user-create --project <aiven-project> --username <read user> --m3-group <group> <m3 service>
+ 
+Create Kubernetes secret for Highlander deployment
+
+kubectl create secret generic m3secret --from-literal=M3_URL='https://<m3_service>.aivencloud.com:<port>/api/v1/prom/remote/write' --from-literal=M3_USER=<write user> --from-literal=M3_PASSWORD=<password> -n monitoring
+ 
 
 # Prometheus
 
