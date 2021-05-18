@@ -11,9 +11,7 @@ resource "aiven_kafka_topic" "observations-weather-raw" {
     cleanup_policy = "delete"
     min_insync_replicas = 1
   }
-  depends_on = [
-    aiven_kafka.tms-demo-kafka
-  ]
+  
 }
 
 resource "aiven_kafka_topic" "observations-weather-processed" {
@@ -27,9 +25,7 @@ resource "aiven_kafka_topic" "observations-weather-processed" {
     cleanup_policy = "delete"
     min_insync_replicas = 1
   }
-  depends_on = [
-    aiven_kafka.tms-demo-kafka
-  ]
+  
 }
 
 resource "aiven_kafka_topic" "observations-weather-multivariate" {
@@ -43,9 +39,7 @@ resource "aiven_kafka_topic" "observations-weather-multivariate" {
     cleanup_policy = "delete"
     min_insync_replicas = 1
   }
-  depends_on = [
-    aiven_kafka.tms-demo-kafka
-  ]
+  
 }
 
 resource "aiven_kafka_topic" "observations-weather-municipality" {
@@ -59,9 +53,7 @@ resource "aiven_kafka_topic" "observations-weather-municipality" {
     cleanup_policy = "delete"
     min_insync_replicas = 1
   }
-  depends_on = [
-    aiven_kafka.tms-demo-kafka
-  ]
+  
 }
 
 resource "aiven_kafka_topic" "observations-weather-avg-air-temperature" {
@@ -75,9 +67,7 @@ resource "aiven_kafka_topic" "observations-weather-avg-air-temperature" {
     cleanup_policy = "delete"
     min_insync_replicas = 1
   }
-  depends_on = [
-    aiven_kafka.tms-demo-kafka
-  ]
+  
 }
 
 resource "aiven_kafka_topic" "stations-weather" {
@@ -90,9 +80,7 @@ resource "aiven_kafka_topic" "stations-weather" {
     cleanup_policy = "compact"
     min_insync_replicas = 1
   }
-  depends_on = [
-    aiven_kafka.tms-demo-kafka
-  ]
+  
 }
 
 resource "aiven_kafka_topic" "sensors-weather" {
@@ -105,8 +93,6 @@ resource "aiven_kafka_topic" "sensors-weather" {
     cleanup_policy = "compact"
     min_insync_replicas = 1
   }
-  depends_on = [
-    aiven_kafka.tms-demo-kafka
-  ]
+  
 }
 

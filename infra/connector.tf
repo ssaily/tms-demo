@@ -24,10 +24,10 @@ locals {
   schema_registry_uri = "https://${data.aiven_service_user.kafka_admin.username}:${data.aiven_service_user.kafka_admin.password}@${data.aiven_service_component.schema_registry.host}:${data.aiven_service_component.schema_registry.port}"
 }
 
-resource "aiven_kafka_connector" "kafka-pg-cdc" {
+resource "aiven_kafka_connector" "kafka-pg-cdc-stations" {
   project = var.avn_project_id
   service_name = aiven_kafka_connect.tms-demo-kafka-connect1.service_name
-  connector_name = "kafka-pg-cdc"
+  connector_name = "kafka-pg-cdc-stations"
 
   config = {  
     "_aiven.restart.on.failure": "true",
@@ -38,7 +38,7 @@ resource "aiven_kafka_connector" "kafka-pg-cdc" {
     "value.converter.basic.auth.credentials.source": "URL",
     "value.converter.schemas.enable": "true",
     "connector.class": "io.debezium.connector.postgresql.PostgresConnector",    
-    "name": "kafka-pg-cdc",
+    "name": "kafka-pg-cdc-stations",
     "slot.name": "weatherstations",
     "database.hostname": data.aiven_service_component.tms_pg.host,
     "database.port": data.aiven_service_component.tms_pg.port,
@@ -61,6 +61,8 @@ resource "aiven_kafka_connector" "kafka-pg-cdc" {
 
   depends_on = [ 
     aiven_service_integration.tms-demo-connect-integr,
+    aiven_kafka_connect.tms-demo-kafka-connect1,
+    aiven_kafka_topic.stations-weather,
     aiven_service.tms-demo-pg
   ]
 }
@@ -102,6 +104,8 @@ resource "aiven_kafka_connector" "kafka-pg-cdc-sensors" {
 
   depends_on = [ 
     aiven_service_integration.tms-demo-connect-integr,
+    aiven_kafka_connect.tms-demo-kafka-connect1,
+    aiven_kafka_topic.sensors-weather,
     aiven_service.tms-demo-pg
   ]
 }
