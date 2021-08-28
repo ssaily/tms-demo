@@ -56,7 +56,7 @@ public class CalculationsTopology {
         KTable<Windowed<String>, DigitrafficAggregate> windows = streamsBuilder.stream("observations.weather.processed", 
             Consumed.with(Serdes.String(), valueSerde).withTimestampExtractor(new ObservationTimestampExtractor()))        
         .filter((k, v) -> v.getName() != null && v.getName().contentEquals("ILMA"))
-        .selectKey((key, value) -> key + "-" + value.getId().toString())
+        .selectKey((key, value) -> key + "-" + String.valueOf(value.getId()))
         .groupByKey(groupedMessage) 
         .windowedBy(TimeWindows.of(Duration.ofMinutes(60)).advanceBy(Duration.ofMinutes(60)).grace(Duration.ofMinutes(10)))                
         .aggregate(() -> new CountAndSum(0, 0, "", 0L, 0.0), 
@@ -83,7 +83,7 @@ public class CalculationsTopology {
         windows
             .toStream()
             .map((key, value) -> 
-                new KeyValue<String, DigitrafficAggregate>(value.getRoadStationId().toString(), value))
+                new KeyValue<String, DigitrafficAggregate>(String.valueOf(value.getRoadStationId()), value))
             .to("observations.weather.avg-air-temperature", Produced.with(Serdes.String(), resultSerde));
                         
         return streamsBuilder.build();

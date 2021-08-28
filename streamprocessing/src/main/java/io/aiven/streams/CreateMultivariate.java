@@ -78,7 +78,7 @@ public class CreateMultivariate {
             .withValueSerde(valueMvSerde)) /* serde for aggregate value */
         .suppress(Suppressed.untilWindowCloses(BufferConfig.unbounded()))
         .toStream()
-        .map((key, value) -> new KeyValue<>(value.getRoadStationId().toString(), value))
+        .map((key, value) -> new KeyValue<>(String.valueOf(value.getRoadStationId()), value))
         .to("observations.weather.multivariate", Produced.with(Serdes.String(), valueMvSerde));
         
         
