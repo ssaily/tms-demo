@@ -9,6 +9,13 @@ group = 'io.aiven'
 version = '0.4.4-SNAPSHOT'
 sourceCompatibility = '14'
 
+sourceSets {
+  main {
+    java.srcDirs += 'src/main/java'
+    java.srcDirs += 'build/generated/sources'
+  }
+}
+
 repositories {
 	jcenter()
 	mavenCentral()
