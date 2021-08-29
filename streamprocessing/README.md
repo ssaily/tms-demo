@@ -8,7 +8,7 @@ Enrich message by utilizing KStream - KTable joins. KTable holds the metadata fo
 
 ## CalculationsTopology
 
-Calculate 60 second tumbling average for each weather station and mesurement.
+Calculate 1 hour tumbling average air temperature for each weather station.
 
 ## CreateMultivariate
 
