@@ -4,7 +4,7 @@ from confluent_kafka.avro import AvroConsumer, CachedSchemaRegistryClient
 from confluent_kafka.avro.serializer.message_serializer import MessageSerializer as AvroSerde
 
 import requests
-
+import unicodedata
 import os
 
 influxdb_client = os.getenv("M3_INFLUXDB_URL").rstrip()
@@ -29,9 +29,12 @@ deserialize_avro = avro_serde.decode_message
 
 def get_name_or_default(name):
     if not name:
-        return "-"
-    else:
-        return bytes(name, 'utf-8').decode('unicode-escape').replace(" ", "_")
+        return str("-")
+    else:        
+        name = unicodedata.normalize('NFD', name)
+        name = name.encode('ascii', 'ignore').decode('ascii')
+        name = name.replace(" ", "_")
+    return name
 
 def to_buffer(buffer: list, message):
     try:                    
@@ -51,10 +54,10 @@ def to_buffer(buffer: list, message):
             values_str = ','.join(values)
         else:
             measurement_name = 'observations'
-            sensor_name_str = deserialized_message["name"]
+            sensor_name_str = get_name_or_default(deserialized_message["name"])
             values_str = f'sensorValue={deserialized_message["sensorValue"]}'
 
-        buffer.append("{measurement},roadStationId={road_station_id},municipality={municipality},province={province},geohash={geohash},name={sensor_name} {sensor_values} {timestamp}"                    
+        buffer.append("{measurement},service=m3-sink,roadStationId={road_station_id},municipality={municipality},province={province},geohash={geohash},name={sensor_name} {sensor_values} {timestamp}"                    
             .format(measurement=measurement_name,
                     road_station_id=deserialized_message["roadStationId"],                    
                     municipality=get_name_or_default(deserialized_message["municipality"]),
