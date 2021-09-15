@@ -1,6 +1,6 @@
 # Monitoring Kubernetes and Kafka Streams with Prometheus
 
-This directory contains git submodules for kube-prometheus and Highlander reverse proxy.
+This directory contains git submodule for Highlander reverse proxy and Prometheus jsonnet project.
 
 # M3 user config
 
@@ -16,21 +16,42 @@ Now create another user to be used for Grafana Prometheus data source
 avn service user-create --project <aiven-project> --username <read user> --m3-group <group> <m3 service>
 ````
 
-Create Kubernetes secret for Highlander deployment
+# Highlander
+
+Hihlander is a reverse proxy on Prometheus write path. It only allow single client to write to target (M3) so effectively deduplicates datapoints written by replicated Prometheus deployment (HA)
+
+## Create Kubernetes secret for Highlander deployment
 
 ````
 kubectl create secret generic m3secret --from-literal=M3_URL='https://<m3_service>.aivencloud.com:<port>/api/v1/prom/remote/write' --from-literal=M3_USER=<write user> --from-literal=M3_PASSWORD=<password> -n monitoring
 ````
 
+## Deploy
+````
+kubectl apply -f k8s/highlander.yaml
+````
 
 # Prometheus
 
-Follow the instructions to setup Prometheus k8s operator
-[kube-prometheus/README.md](kube-prometheus/README.md)
+We use Jsonnet and Jsonnet-bundler for creating Prometheus Kubernetes manifests.
 
-Modify [example.jsonnet](kube-prometheus/example.jsonnet) to include tms-demo namespace for service discovery
- [instructions](kube-prometheus/README.md#adding-additional-namespaces-to-monitor)
+Install gojsontoyaml
+````
+go install gojsontoyaml@latest
+````
 
-(Optional) Build Docker image for Highlander reverse proxy. At the moment you will have to use the forked version for authentication against Aiven M3
+Build k8s manifests
 
-Deploy ServiceMonitor and Higlander using manifests at [k8s directory](k8s/)
+````
+cd prometheus
+jb init
+jb install github.com/prometheus-operator/kube-prometheus/jsonnet/kube-prometheus@release-0.7
+./build.sh example.jsonnet
+kubectl apply -f manifests/setup
+kubectl apply -f manifests
+````
+
+Deploy ServiceMonitor for the stream processing microservices
+````
+kubectl apply -f k8s/prometheus-servicemonitor.yaml
+````
