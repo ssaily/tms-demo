@@ -16,12 +16,12 @@ local kp =
       namespaces+: ['tms-demo'],
       prometheus+: {
         spec+: { 
-          remoteWrite: {
-            url: 'http://highlander:9092/api/v1/prom/remote/write'
-          },
-          remoteRead: {
-            url: 'http://highlander:9092/api/v1/prom/remote/read'
-          },
+          remoteWrite: [
+            { url: 'http://highlander:9092/api/v1/prom/remote/write' },
+          ],
+          remoteRead: [
+            { url: 'http://highlander:9092/api/v1/prom/remote/read', readRecent: true },
+          ],
         },
       },
     },
