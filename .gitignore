@@ -13,6 +13,9 @@ build/
 spark/project
 spark/target
 
+monitoring/prometheus/manifests
+monitoring/prometheus/vendor
+
 **/.ipynb_checkpoints
 **/.python-version
 
