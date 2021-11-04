@@ -3,21 +3,13 @@ data "aiven_service_component" "schema_registry" {
   service_name = aiven_kafka.tms-demo-kafka.service_name
   component = "schema_registry"
   route = "dynamic"
-
-  depends_on = [
-    aiven_kafka.tms-demo-kafka
-  ]
 }
 
 data "aiven_service_component" "tms_pg" {
     project = var.avn_project_id
-    service_name = aiven_service.tms-demo-pg.service_name
+    service_name = aiven_pg.tms-demo-pg.service_name
     component = "pg"
     route = "dynamic"
-
-    depends_on = [
-        aiven_service.tms-demo-pg
-    ]
 }
 
 locals {
@@ -58,13 +50,79 @@ resource "aiven_kafka_connector" "kafka-pg-cdc-stations" {
     "transforms.extractKey.field":"roadstationid",
     "include.schema.changes": "false"
   }
+}
 
-  depends_on = [ 
-    aiven_service_integration.tms-demo-connect-integr,
-    aiven_kafka_connect.tms-demo-kafka-connect1,
-    aiven_kafka_topic.stations-weather,
-    aiven_service.tms-demo-pg
-  ]
+resource "aiven_kafka_connector" "kafka-pg-cdc-stations-2" {
+  project = var.avn_project_id
+  service_name = aiven_kafka_connect.tms-demo-kafka-connect1.service_name
+  connector_name = "kafka-pg-cdc-stations-2"
+
+  config = {  
+    "_aiven.restart.on.failure": "true",
+    "key.converter" : "io.confluent.connect.avro.AvroConverter",
+    "key.converter.schema.registry.url": local.schema_registry_uri,
+    "key.converter.basic.auth.credentials.source": "URL",
+    "key.converter.schemas.enable": "true",
+    "value.converter": "io.confluent.connect.avro.AvroConverter",
+    "value.converter.schema.registry.url": local.schema_registry_uri,
+    "value.converter.basic.auth.credentials.source": "URL",
+    "value.converter.schemas.enable": "true",
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",    
+    "name": "kafka-pg-cdc-stations-2",
+    "slot.name": "weatherstations2",
+    "database.hostname": data.aiven_service_component.tms_pg.host,
+    "database.port": data.aiven_service_component.tms_pg.port,
+    "database.user": data.aiven_service_user.pg_admin.username,
+    "database.password": data.aiven_service_user.pg_admin.password,
+    "database.dbname": "defaultdb",
+    "database.server.name": "tms-demo-pg",
+    "table.whitelist": "public.weather_stations_2",
+    "plugin.name": "wal2json",
+    "database.sslmode": "require",
+    "transforms":"route",
+    "transforms.route.regex": "tms-demo-pg.public.weather_stations_2",
+    "transforms.route.replacement": "weather_stations",
+    "transforms.route.type": "org.apache.kafka.connect.transforms.RegexRouter",
+    "include.schema.changes": "false"
+  }
+}
+
+resource "aiven_kafka_connector" "bq-sink" {
+  count = "${var.bq_project != "" ? 1 : 0}"
+  project = var.avn_project_id
+  service_name = aiven_kafka_connect.tms-demo-kafka-connect1.service_name
+  connector_name = "bq-sink"
+  config = {  
+    "_aiven.restart.on.failure": "true",
+    "name": "bq-sink",
+    "connector.class": "com.wepay.kafka.connect.bigquery.BigQuerySinkConnector",
+    "key.converter" : "io.confluent.connect.avro.AvroConverter",
+    "key.converter.schema.registry.url": local.schema_registry_uri,
+    "key.converter.basic.auth.credentials.source": "URL",
+    "key.converter.schemas.enable": "true",
+    "value.converter": "io.confluent.connect.avro.AvroConverter",
+    "value.converter.schema.registry.url": local.schema_registry_uri,
+    "value.converter.basic.auth.credentials.source": "URL",
+    "value.converter.schemas.enable": "true",
+    "topics": "weather_stations",    
+    "project": var.bq_project,
+    "keySource": "JSON",
+    "keyfile": var.bq_key,
+    "defaultDataset": "weather_stations",    
+    "kafkaKeyFieldName": "kafkakey",
+    "kafkaDataFieldName": "kafkavalue",
+    "allowNewBigQueryFields": "true",
+    "allowBigQueryRequiredFieldRelaxation": "true",
+    "allowSchemaUnionization": "true",
+    "deleteEnabled": "true",
+    "mergeIntervalMs": "5000",
+    "transforms": "unwrap,ReplaceField",
+    "transforms.unwrap.type": "io.debezium.transforms.UnwrapFromEnvelope",
+    "transforms.unwrap.drop.tombstones": "false",
+    "transforms.unwrap.delete.handling.mode": "none",
+    "transforms.ReplaceField.type": "org.apache.kafka.connect.transforms.ReplaceField$Value",
+    "transforms.ReplaceField.blacklist": "roadstationid"
+  } 
 }
 
 resource "aiven_kafka_connector" "kafka-pg-cdc-sensors" {
@@ -100,12 +158,5 @@ resource "aiven_kafka_connector" "kafka-pg-cdc-sensors" {
     "transforms.extractKey.type":"org.apache.kafka.connect.transforms.ExtractField$Key",
     "transforms.extractKey.field":"sensorid",
     "include.schema.changes": "false"
-  }
-
-  depends_on = [ 
-    aiven_service_integration.tms-demo-connect-integr,
-    aiven_kafka_connect.tms-demo-kafka-connect1,
-    aiven_kafka_topic.sensors-weather,
-    aiven_service.tms-demo-pg
-  ]
+  }  
 }

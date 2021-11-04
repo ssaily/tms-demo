@@ -13,11 +13,15 @@ build/
 spark/project
 spark/target
 
+monitoring/prometheus/manifests
+monitoring/prometheus/vendor
+
 **/.ipynb_checkpoints
 **/.python-version
 
 ### Secrets ###
-tms-secrets/*
+k8s/secrets/aiven/*
+**/pgpassfile
 **/*.p12
 **/*.jks
 **/*.pem

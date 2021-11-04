@@ -1,7 +1,8 @@
-[submodule "monitoring/kube-prometheus"]
-	path = monitoring/kube-prometheus
-	url = https://github.com/prometheus-operator/kube-prometheus
 [submodule "monitoring/highlander"]
 	path = monitoring/highlander
+	url = https://github.com/ssaily/highlander.git
+	branch = basic-auth-support
+[submodule "observability/highlander"]
+	path = observability/highlander
 	url = https://github.com/ssaily/highlander.git
 	branch = basic-auth-support

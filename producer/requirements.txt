@@ -1,2 +1,4 @@
 paho-mqtt
-kafka-python 
+confluent_kafka
+prometheus-kafka-metrics
+prometheus-client

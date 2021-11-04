@@ -5,13 +5,16 @@ resource "aiven_kafka_topic" "observations-weather-raw" {
   service_name = aiven_kafka.tms-demo-kafka.service_name
   topic_name = "observations.weather.raw"
   partitions = 20
-  replication = 2  
+  replication = 2
   config {
-    retention_ms = 259200000      
+    retention_ms = 259200000
     cleanup_policy = "delete"
     min_insync_replicas = 1
   }
-  
+  depends_on = [
+    aiven_kafka.tms-demo-kafka
+  ]
+
 }
 
 resource "aiven_kafka_topic" "observations-weather-processed" {
@@ -19,13 +22,15 @@ resource "aiven_kafka_topic" "observations-weather-processed" {
   service_name = aiven_kafka.tms-demo-kafka.service_name
   topic_name = "observations.weather.processed"
   partitions = 20
-  replication = 2  
+  replication = 2
   config {
-    retention_ms = 259200000      
+    retention_ms = 259200000
     cleanup_policy = "delete"
     min_insync_replicas = 1
   }
-  
+  depends_on = [
+    aiven_kafka.tms-demo-kafka
+  ]
 }
 
 resource "aiven_kafka_topic" "observations-weather-multivariate" {
@@ -33,13 +38,15 @@ resource "aiven_kafka_topic" "observations-weather-multivariate" {
   service_name = aiven_kafka.tms-demo-kafka.service_name
   topic_name = "observations.weather.multivariate"
   partitions = 20
-  replication = 2  
+  replication = 2
   config {
-    retention_ms = 259200000      
+    retention_ms = 259200000
     cleanup_policy = "delete"
     min_insync_replicas = 1
   }
-  
+  depends_on = [
+    aiven_kafka.tms-demo-kafka
+  ]
 }
 
 resource "aiven_kafka_topic" "observations-weather-municipality" {
@@ -47,13 +54,15 @@ resource "aiven_kafka_topic" "observations-weather-municipality" {
   service_name = aiven_kafka.tms-demo-kafka.service_name
   topic_name = "observations.weather.municipality"
   partitions = 20
-  replication = 2  
+  replication = 2
   config {
-    retention_ms = 1814400000      
+    retention_ms = 1814400000
     cleanup_policy = "delete"
     min_insync_replicas = 1
   }
-  
+  depends_on = [
+    aiven_kafka.tms-demo-kafka
+  ]
 }
 
 resource "aiven_kafka_topic" "observations-weather-avg-air-temperature" {
@@ -61,13 +70,15 @@ resource "aiven_kafka_topic" "observations-weather-avg-air-temperature" {
   service_name = aiven_kafka.tms-demo-kafka.service_name
   topic_name = "observations.weather.avg-air-temperature"
   partitions = 20
-  replication = 2  
+  replication = 2
   config {
-    retention_ms = 1814400000      
+    retention_ms = 1814400000
     cleanup_policy = "delete"
     min_insync_replicas = 1
   }
-  
+  depends_on = [
+    aiven_kafka.tms-demo-kafka
+  ]
 }
 
 resource "aiven_kafka_topic" "stations-weather" {
@@ -75,12 +86,29 @@ resource "aiven_kafka_topic" "stations-weather" {
   service_name = aiven_kafka.tms-demo-kafka.service_name
   topic_name = "tms-demo-pg.public.weather_stations"
   partitions = 20
-  replication = 2  
-  config {    
+  replication = 2
+  config {
     cleanup_policy = "compact"
     min_insync_replicas = 1
   }
-  
+  depends_on = [
+    aiven_kafka.tms-demo-kafka
+  ]
+}
+
+resource "aiven_kafka_topic" "stations-weather-2" {
+  project = var.avn_project_id
+  service_name = aiven_kafka.tms-demo-kafka.service_name
+  topic_name = "weather_stations"
+  partitions = 20
+  replication = 2
+  config {
+    cleanup_policy = "compact"
+    min_insync_replicas = 1
+  }
+  depends_on = [
+    aiven_kafka.tms-demo-kafka
+  ]
 }
 
 resource "aiven_kafka_topic" "sensors-weather" {
@@ -88,11 +116,13 @@ resource "aiven_kafka_topic" "sensors-weather" {
   service_name = aiven_kafka.tms-demo-kafka.service_name
   topic_name = "tms-demo-pg.public.weather_sensors"
   partitions = 20
-  replication = 2  
-  config {    
+  replication = 2
+  config {
     cleanup_policy = "compact"
     min_insync_replicas = 1
   }
-  
+  depends_on = [
+    aiven_kafka.tms-demo-kafka
+  ]
 }
 
