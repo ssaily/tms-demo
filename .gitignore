@@ -20,7 +20,8 @@ monitoring/prometheus/vendor
 **/.python-version
 
 ### Secrets ###
-tms-secrets/*
+k8s/secrets/aiven/*
+**/pgpassfile
 **/*.p12
 **/*.jks
 **/*.pem

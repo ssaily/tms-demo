@@ -20,7 +20,7 @@ spec:
         image: ssaily/highlander:0.0.4
         envFrom:
           - secretRef: 
-              name: m3secret
+              name: m3-prom
         resources:
           limits:
             memory: 512Mi

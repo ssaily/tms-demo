@@ -2,3 +2,7 @@
 	path = monitoring/highlander
 	url = https://github.com/ssaily/highlander.git
 	branch = basic-auth-support
+[submodule "observability/highlander"]
+	path = observability/highlander
+	url = https://github.com/ssaily/highlander.git
+	branch = basic-auth-support

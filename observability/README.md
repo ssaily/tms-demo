@@ -1,6 +1,6 @@
-# Monitoring Kubernetes and Kafka Streams with Prometheus
+# Observability stack for managed Aiven services, Kubernetes and Kafka Streams with Prometheus, M3 and OpenSearch
 
-This directory contains git submodule for Highlander reverse proxy and Prometheus jsonnet project.
+This directory contains K8s manifests for deploying observability capabilities. There is also a git submodule for Highlander reverse proxy. Highlander is used for de-duplicating metrics from HA Prometheus setup.
 
 # M3 user config
 
@@ -20,11 +20,6 @@ avn service user-create --project <aiven-project> --username <read user> --m3-gr
 
 Hihlander is a reverse proxy on Prometheus write path. It only allow single client to write to target (M3) so effectively deduplicates datapoints written by replicated Prometheus deployment (HA)
 
-## Create Kubernetes secret for Highlander deployment
-
-````
-kubectl create secret generic m3secret --from-literal=M3_URL='https://<m3_service>.aivencloud.com:<port>/api/v1/prom/remote/write' --from-literal=M3_USER=<write user> --from-literal=M3_PASSWORD=<password> -n monitoring
-````
 
 ## Deploy
 ````

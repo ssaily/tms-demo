@@ -30,7 +30,7 @@ spec:
               name: tms-service-endpoint
         volumeMounts:
         - mountPath: /etc/streams/tms-processing-cert
-          name: tms-processing-cert
+          name: cert-volume
         resources:
           limits:
             memory: 512Mi
@@ -40,7 +40,7 @@ spec:
             cpu: "100m"
         imagePullPolicy: Always
       volumes:
-        - name: tms-processing-cert
+        - name: cert-volume
           secret:
             secretName: tms-processing-cert
             items:
@@ -155,6 +155,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: tms-demo-enrichment-svc
+  namespace: tms-demo
   labels:
     app: tms-demo-enrichment
 spec:
@@ -170,6 +171,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: tms-demo-calculations-svc
+  namespace: tms-demo
   labels:
     app: tms-demo-calculations
 spec:
@@ -185,6 +187,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: tms-demo-multivariate-svc
+  namespace: tms-demo
   labels:
     app: tms-demo-multivariate
 spec:
