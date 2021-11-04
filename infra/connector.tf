@@ -88,6 +88,7 @@ resource "aiven_kafka_connector" "kafka-pg-cdc-stations-2" {
 }
 
 resource "aiven_kafka_connector" "bq-sink" {
+  count = "${var.bq_project != "" ? 1 : 0}"
   project = var.avn_project_id
   service_name = aiven_kafka_connect.tms-demo-kafka-connect1.service_name
   connector_name = "bq-sink"

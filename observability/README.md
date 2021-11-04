@@ -40,8 +40,9 @@ Build k8s manifests
 ````
 cd prometheus
 jb init
-jb install github.com/prometheus-operator/kube-prometheus/jsonnet/kube-prometheus@release-0.7
-./build.sh example.jsonnet
+jb install github.com/prometheus-operator/kube-prometheus/jsonnet/kube-prometheus@release-0.9
+./build.sh example-0.9.jsonnet
+printf "  remoteWrite:\n   - url: \"http://highlander:9092/api/v1/prom/remote/write\"\n" >> manifests/prometheus-prometheus.yaml
 kubectl apply -f manifests/setup
 kubectl apply -f manifests
 ````

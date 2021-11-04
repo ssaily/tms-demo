@@ -30,6 +30,9 @@ spec:
         imagePullPolicy: Always
         ports:
           - containerPort: 2020
+        envFrom:
+          - secretRef:
+              name: tms-os-service
         volumeMounts:
         - name: varlog
           mountPath: /var/log

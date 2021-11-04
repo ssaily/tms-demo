@@ -31,5 +31,11 @@ kubectl create secret generic m3-prom \
 --from-file=M3_URL=secrets/aiven/m3_prom_uri \
 --from-file=M3_USER=secrets/aiven/m3_prom_user \
 --from-file=M3_PASSWORD=secrets/aiven/m3_prom_pwd \
+-n monitoring
+kubectl create secret generic tms-os-service \
+--from-file=OPENSEARCH_HOST=secrets/aiven/os_host \
+--from-file=OPENSEARCH_PORT=secrets/aiven/os_port \
+--from-file=OPENSEARCH_USER=secrets/aiven/os_user \
+--from-file=OPENSEARCH_PASSWORD=secrets/aiven/os_password \
 -n tms-demo
 kubectl apply -f secrets.yaml

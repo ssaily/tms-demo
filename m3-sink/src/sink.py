@@ -2,17 +2,21 @@ from confluent_kafka import avro
 from confluent_kafka import Consumer
 from confluent_kafka.avro import AvroConsumer, CachedSchemaRegistryClient
 from confluent_kafka.avro.serializer.message_serializer import MessageSerializer as AvroSerde
+from prometheus_kafka_consumer.metrics_manager import ConsumerMetricsManager
+from prometheus_client import start_http_server
 
 import requests
 import unicodedata
 import os
 
+metric_manager = ConsumerMetricsManager()
 influxdb_client = os.getenv("M3_INFLUXDB_URL").rstrip()
 influxdb_cred = os.getenv("M3_INFLUXDB_CREDENTIALS").rstrip()
 group_name = "tms-demo-m3-sink"
 
-consumer_config = {"bootstrap.servers": os.getenv("BOOTSTRAP_SERVERS"),                        
+consumer_config = {"bootstrap.servers": os.getenv("BOOTSTRAP_SERVERS"),
                         "group.id": group_name,
+                        "stats_cb": metric_manager.send,
                         "max.poll.interval.ms": 30000,
                         "session.timeout.ms": 20000,
                         "default.topic.config": {"auto.offset.reset": "latest"},
@@ -100,10 +104,9 @@ def consume_record(lines: list):
                                    
                 if (len(lines) > 1000 and flush_buffer(lines) == True):
                     consumer.commit()
-            
-    consumer.close()
-
 
 if __name__ == "__main__":
+    start_http_server(9091)
     lines = []
     consume_record(lines)
+    

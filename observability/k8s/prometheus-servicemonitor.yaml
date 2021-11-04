@@ -42,3 +42,33 @@ spec:
   endpoints:
   - interval: 5s
     port: metrics
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: servicemonitor-m3sink
+  namespace: tms-demo
+  labels:
+    app: tms-demo-servicemonitor
+spec:
+  selector:
+    matchLabels:
+      app: tms-demo-sink
+  endpoints:
+  - interval: 5s
+    port: metrics
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: servicemonitor-ingest
+  namespace: tms-demo
+  labels:
+    app: tms-demo-servicemonitor
+spec:
+  selector:
+    matchLabels:
+      app: tms-demo-ingest
+  endpoints:
+  - interval: 5s
+    port: metrics

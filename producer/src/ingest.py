@@ -1,8 +1,13 @@
 from paho.mqtt import client as mqtt_client
-from kafka import KafkaProducer
+from confluent_kafka import SerializingProducer
+from confluent_kafka.serialization import StringSerializer
 import json
 import os
 import time
+from prometheus_kafka_producer.metrics_manager import ProducerMetricsManager
+from prometheus_client import start_http_server
+
+metric_manager = ProducerMetricsManager()
 
 broker = 'tie.digitraffic.fi'
 port = 61619
@@ -10,17 +15,19 @@ topic = "weather/#"
 
 client_id = "tms-demo-ingest-" + str(time.time())
 
-def connect_kafka() -> KafkaProducer:
-    producer = KafkaProducer(
-        bootstrap_servers=os.getenv("BOOTSTRAP_SERVERS"),
-        key_serializer=str.encode,
-        value_serializer=str.encode,
-        compression_type='gzip',
-        security_protocol="SSL",
-        ssl_cafile="/etc/streams/tms-ingest-cert/ca.pem",
-        ssl_certfile="/etc/streams/tms-ingest-cert/service.cert",
-        ssl_keyfile="/etc/streams/tms-ingest-cert/service.key",        
-    )
+def connect_kafka() -> SerializingProducer:
+    producer_config = {
+        'bootstrap.servers': os.getenv("BOOTSTRAP_SERVERS"),
+        'key.serializer': StringSerializer("utf8"),
+        'value.serializer': StringSerializer("utf8"),
+        'compression.type': 'gzip',
+        'security.protocol': 'SSL',
+        'ssl.ca.location': '/etc/streams/tms-ingest-cert/ca.pem',
+        'ssl.certificate.location': '/etc/streams/tms-ingest-cert/service.cert',
+        'ssl.key.location': '/etc/streams/tms-ingest-cert/service.key', 
+        'stats_cb': metric_manager.send,      
+    }
+    producer = SerializingProducer(producer_config)
     return producer
 
 producer = connect_kafka()
@@ -51,7 +58,7 @@ def subscribe(client: mqtt_client):
             json_message = json.loads(msg.payload.decode())
             roadstation_id = json_message.get("roadStationId")
             if roadstation_id:
-                producer.send(topic="observations.weather.raw", key=str(json_message["roadStationId"]), 
+                producer.produce(topic="observations.weather.raw", key=str(json_message["roadStationId"]), 
                 value=json.dumps(json_message))
             else:
                 print("roadStationId not found: {}".format(msg.payload.decode()))
@@ -69,4 +76,5 @@ def run():
 
 
 if __name__ == '__main__':
+    start_http_server(9091)
     run()
