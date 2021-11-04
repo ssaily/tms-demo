@@ -17,12 +17,12 @@ spec:
     spec:
       containers:      
       - name: tms-demo-enrichment
-        image: ssaily/tms-demo-processing:0.4.4
+        image: ssaily/tms-demo-processing:0.4.5
         env:
           - name: SPRING_PROFILES_ACTIVE
             value: enrichment
           - name: JAVA_OPTS
-            value: "-javaagent:./jmx_prometheus_javaagent-0.15.0.jar=9091:kafka-client.yaml"
+            value: "-javaagent:./jmx_prometheus_javaagent-0.16.1.jar=9091:kafka-client.yaml"
         envFrom:
           - secretRef:
               name: kafka-secrets        
@@ -39,6 +39,9 @@ spec:
             memory: 256Mi
             cpu: "100m"
         imagePullPolicy: Always
+        ports:
+        - name: metrics
+          containerPort: 9091
       volumes:
         - name: cert-volume
           secret:
@@ -68,12 +71,12 @@ spec:
     spec:
       containers:      
       - name: tms-demo-calculations
-        image: ssaily/tms-demo-processing:0.4.4
+        image: ssaily/tms-demo-processing:0.4.5
         env:
           - name: SPRING_PROFILES_ACTIVE
             value: calculations
           - name: JAVA_OPTS
-            value: "-javaagent:./jmx_prometheus_javaagent-0.15.0.jar=9091:kafka-client.yaml"
+            value: "-javaagent:./jmx_prometheus_javaagent-0.16.1.jar=9091:kafka-client.yaml"
         envFrom:
           - secretRef:
               name: kafka-secrets        
@@ -119,12 +122,12 @@ spec:
     spec:
       containers:      
       - name: tms-demo-multivariate
-        image: ssaily/tms-demo-processing:0.4.4
+        image: ssaily/tms-demo-processing:0.4.5
         env:
           - name: SPRING_PROFILES_ACTIVE
             value: multivariate
           - name: JAVA_OPTS
-            value: "-javaagent:./jmx_prometheus_javaagent-0.15.0.jar=9091:kafka-client.yaml"
+            value: "-javaagent:./jmx_prometheus_javaagent-0.16.1.jar=9091:kafka-client.yaml"
         envFrom:
           - secretRef:
               name: kafka-secrets        
@@ -162,8 +165,6 @@ spec:
   ports:
     - name: metrics
       port: 9091
-      targetPort: 9091
-      protocol: TCP
   selector:
     app: tms-demo-enrichment
 ---
