@@ -61,3 +61,11 @@ resource "aiven_service_integration" "tms-demo-connect-integr" {
     aiven_kafka_connect.tms-demo-kafka-connect1
   ]
 }
+
+resource "aiven_service_integration" "tms-demo-obs-kafka-integr" {
+  project = var.avn_project_id
+  integration_type = "metrics"
+  source_service_name = aiven_kafka.tms-demo-kafka.service_name
+  destination_service_name = aiven_m3db.tms-demo-obs-m3db.service_name
+}
+
