@@ -15,7 +15,9 @@ influxdb_cred = os.getenv("M3_INFLUXDB_CREDENTIALS").rstrip()
 group_name = "tms-demo-m3-sink"
 
 consumer_config = {"bootstrap.servers": os.getenv("BOOTSTRAP_SERVERS"),
+                        "statistics.interval.ms": 10000,
                         "group.id": group_name,
+                        "client.id": group_name,
                         "stats_cb": metric_manager.send,
                         "max.poll.interval.ms": 30000,
                         "session.timeout.ms": 20000,
