@@ -32,7 +32,7 @@ cd k8s
 
 ### Namespace
 ```
-kubectl apply -f namespace.yaml
+kubectl create -f namespace.yaml
 ```
 
 ### Secrets
@@ -40,11 +40,14 @@ kubectl apply -f namespace.yaml
 ./create-k8s-secrets.sh
 ```
 
+### Deploy observability (Optional)
+Follow instructions [here](observability/README.md)
+
 ### Deployments
 ```
-kubectl apply -f deploy-ingest.yaml
-kubectl apply -f deploy-processing.yaml
-kubectl apply -f deploy-sink.yaml
-kubectl apply -f ksqldb.yaml
+kubectl create -f deploy-ingest.yaml
+kubectl create -f deploy-processing.yaml
+kubectl create -f deploy-sink.yaml
+kubectl create -f ksqldb.yaml
 ```
 
