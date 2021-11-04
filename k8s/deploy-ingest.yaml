@@ -17,7 +17,7 @@ spec:
     spec:
       containers:      
       - name: tms-demo-ingest
-        image: ssaily/tms-demo-ingest:0.1.0
+        image: ssaily/tms-demo-ingest:0.1.1
         env:          
           - name: MQTT_USER
             value: digitraffic

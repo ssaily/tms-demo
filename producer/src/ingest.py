@@ -13,11 +13,13 @@ broker = 'tie.digitraffic.fi'
 port = 61619
 topic = "weather/#"
 
-client_id = "tms-demo-ingest-" + str(time.time())
+client_id = "tms-demo-ingest"
 
 def connect_kafka() -> SerializingProducer:
     producer_config = {
         'bootstrap.servers': os.getenv("BOOTSTRAP_SERVERS"),
+        "statistics.interval.ms": 10000,
+        'client.id': client_id,
         'key.serializer': StringSerializer("utf8"),
         'value.serializer': StringSerializer("utf8"),
         'compression.type': 'gzip',
