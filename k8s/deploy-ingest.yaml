@@ -17,7 +17,7 @@ spec:
     spec:
       containers:      
       - name: tms-demo-ingest
-        image: ssaily/tms-demo-ingest:0.0.7
+        image: ssaily/tms-demo-ingest:0.1.0
         env:          
           - name: MQTT_USER
             value: digitraffic
@@ -50,3 +50,19 @@ spec:
               path: service.key
             - key: ca.pem
               path: ca.pem
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tms-demo-ingest-svc
+  namespace: tms-demo
+  labels:
+    app: tms-demo-ingest
+spec:
+  ports:
+    - name: metrics
+      port: 9091
+      targetPort: 9091
+      protocol: TCP
+  selector:
+    app: tms-demo-ingest
