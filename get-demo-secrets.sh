@@ -6,7 +6,7 @@
 [ ! -d "k8s/secrets/aiven/admin" ] && avn service user-kafka-java-creds --project $1 --username avnadmin -p supersecret -d k8s/secrets/aiven/admin tms-demo-kafka
 
 # Generate pgpassfile for bootstrapping PostgreSQL tables
-avn service get tms-demo-pg --json -v|jq -r '("host=" + .service_uri_params.host + " port=" + .service_uri_params.port + " dbname=" + .service_uri_params.dbname + " user=" + .service_uri_params.user + " password=" + .service_uri_params.password)' > database/pgpassfile
+avn service get tms-demo-pg --json -v --project $1|jq -r '("host=" + .service_uri_params.host + " port=" + .service_uri_params.port + " dbname=" + .service_uri_params.dbname + " user=" + .service_uri_params.user + " password=" + .service_uri_params.password)' > database/pgpassfile
 
 # Extract endpoints and secrets from Aiven services
 KAFKA_JSON=$(avn service get tms-demo-kafka --project $1 --json -v)
