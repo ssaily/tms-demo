@@ -2,6 +2,7 @@
 resource "aiven_opensearch" "tms-demo-os" {
   project = var.avn_project_id
   cloud_name = var.cloud_name
+  project_vpc_id = data.aiven_project_vpc.demo-vpc.id
   plan = "startup-4"
   service_name = "tms-demo-os"
   maintenance_window_dow = "monday"

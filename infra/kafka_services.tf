@@ -2,6 +2,7 @@
 resource "aiven_kafka" "tms-demo-kafka" {
   project = var.avn_project_id
   cloud_name = var.cloud_name
+  project_vpc_id = data.aiven_project_vpc.demo-vpc.id
   plan = "startup-2"
   service_name = "tms-demo-kafka"
   maintenance_window_dow = "monday"
@@ -10,8 +11,7 @@ resource "aiven_kafka" "tms-demo-kafka" {
 
   kafka_user_config {
     // Enables Kafka Schemas
-    schema_registry = true
-    kafka_version = "2.8"
+    schema_registry = true    
     kafka {
       group_max_session_timeout_ms = 70000
       log_retention_bytes = 1000000000
@@ -23,6 +23,7 @@ resource "aiven_kafka" "tms-demo-kafka" {
 resource "aiven_kafka_connect" "tms-demo-kafka-connect1" {
   project = var.avn_project_id
   cloud_name = var.cloud_name
+  project_vpc_id = data.aiven_project_vpc.demo-vpc.id
   plan = "startup-4"
   service_name = "tms-demo-kafka-connect1"
   maintenance_window_dow = "monday"
@@ -37,6 +38,33 @@ resource "aiven_kafka_connect" "tms-demo-kafka-connect1" {
       kafka_connect = true
     }
   }
+  depends_on = [
+    aiven_kafka.tms-demo-kafka
+  ]
+}
+
+// Kafka connect service
+resource "aiven_kafka_connect" "tms-demo-kafka-connect2" {
+  project = var.avn_project_id
+  cloud_name = var.cloud_name
+  project_vpc_id = data.aiven_project_vpc.demo-vpc.id
+  plan = "startup-4"
+  service_name = "tms-demo-kafka-connect2"
+  maintenance_window_dow = "monday"
+  maintenance_window_time = "10:00:00"
+
+  kafka_connect_user_config {
+    kafka_connect {
+      consumer_isolation_level = "read_committed"
+    }
+
+    public_access {
+      kafka_connect = true
+    }
+  }
+  depends_on = [
+    aiven_kafka.tms-demo-kafka
+  ]
 }
 
 
@@ -59,6 +87,28 @@ resource "aiven_service_integration" "tms-demo-connect-integr" {
   depends_on = [
     aiven_kafka.tms-demo-kafka,
     aiven_kafka_connect.tms-demo-kafka-connect1
+  ]
+}
+
+// Kafka connect service integration
+resource "aiven_service_integration" "tms-demo-connect-integr-2" {
+  project = var.avn_project_id
+  integration_type = "kafka_connect"
+  source_service_name = aiven_kafka.tms-demo-kafka.service_name
+  destination_service_name = aiven_kafka_connect.tms-demo-kafka-connect2.service_name
+
+  kafka_connect_user_config {
+    kafka_connect {
+      group_id = "connect_2"
+      status_storage_topic = "__connect_2_status"
+      offset_storage_topic = "__connect_2_offsets"
+      config_storage_topic = "__connect_2_configs"
+    }
+  }
+
+  depends_on = [
+    aiven_kafka.tms-demo-kafka,
+    aiven_kafka_connect.tms-demo-kafka-connect2
   ]
 }
 
