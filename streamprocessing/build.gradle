@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'io.aiven'
-version = '0.4.4-SNAPSHOT'
+version = '0.5.2-SNAPSHOT'
 sourceCompatibility = '14'
 
 sourceSets {

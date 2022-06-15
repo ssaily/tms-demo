@@ -67,12 +67,24 @@ resource "aiven_kafka_acl" "tms-processing-acl" {
 }
 
 # read access to PostgeSQL CDC topics
-resource "aiven_kafka_acl" "tms-processing-read-acl" {
+resource "aiven_kafka_acl" "tms-processing-stations-acl" {
   project = var.avn_project_id
   service_name = aiven_kafka.tms-demo-kafka.service_name
   permission = "read"
   username = aiven_service_user.tms-processing-user.username
-  topic = "tms-demo-pg.public.*"
+  topic = "pg-stations.public.*"
+  depends_on = [
+    aiven_kafka.tms-demo-kafka
+  ]
+}
+
+# read access to PostgeSQL CDC topics
+resource "aiven_kafka_acl" "tms-processing-sensors-acl" {
+  project = var.avn_project_id
+  service_name = aiven_kafka.tms-demo-kafka.service_name
+  permission = "read"
+  username = aiven_service_user.tms-processing-user.username
+  topic = "pg-sensors.public.*"
   depends_on = [
     aiven_kafka.tms-demo-kafka
   ]

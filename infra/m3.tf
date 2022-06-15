@@ -1,7 +1,7 @@
 resource "aiven_m3db" "tms-demo-iot-m3db" {
   project = var.avn_project_id
   cloud_name = var.cloud_name
-  project_vpc_id = data.aiven_project_vpc.demo-vpc.id
+  project_vpc_id = var.use_cloud_vpc == "true" ? data.aiven_project_vpc.demo-vpc.id : null
   plan = "startup-8"
   service_name = "tms-demo-iot-m3db"
 
@@ -22,7 +22,7 @@ resource "aiven_m3db" "tms-demo-iot-m3db" {
 resource "aiven_m3db" "tms-demo-obs-m3db" {
   project = var.avn_project_id
   cloud_name = var.cloud_name
-  project_vpc_id = data.aiven_project_vpc.demo-vpc.id
+  project_vpc_id = var.use_cloud_vpc == "true" ? data.aiven_project_vpc.demo-vpc.id : null
   plan = "business-8"
   service_name = "tms-demo-obs-m3db"
 
@@ -54,7 +54,7 @@ resource "aiven_m3db" "tms-demo-obs-m3db" {
 resource "aiven_m3aggregator" "tms-demo-m3a" {
   project = var.avn_project_id
   cloud_name = var.cloud_name
-  project_vpc_id = data.aiven_project_vpc.demo-vpc.id
+  project_vpc_id = var.use_cloud_vpc == "true" ? data.aiven_project_vpc.demo-vpc.id : null
   plan = "business-8"
   service_name = "tms-demo-m3a"
   maintenance_window_dow = "monday"

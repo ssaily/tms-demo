@@ -42,7 +42,7 @@ echo $OS_PORT > k8s/secrets/aiven/os_port
 echo $OS_USER > k8s/secrets/aiven/os_user
 echo $OS_PASSWORD > k8s/secrets/aiven/os_password
 
-# Generate truststore for Schema Registry CA
+echo "Generate truststore for Schema Registry CA (${SCHEMA_REGISTRY_HOST})"
 openssl s_client -connect $SCHEMA_REGISTRY_HOST -showcerts < /dev/null 2>/dev/null | awk '/BEGIN CERT/{s=1}; s{t=t "\n" $0}; /END CERT/ {last=t; t=""; s=0}; END{print last}' > k8s/secrets/aiven/sr-ca.cert
 keytool -import -file k8s/secrets/aiven/sr-ca.cert -alias CA -keystore k8s/secrets/aiven/schema_registry.truststore.jks -storepass supersecret -noprompt
 

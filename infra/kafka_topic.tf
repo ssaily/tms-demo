@@ -84,7 +84,7 @@ resource "aiven_kafka_topic" "observations-weather-avg-air-temperature" {
 resource "aiven_kafka_topic" "stations-weather" {
   project = var.avn_project_id
   service_name = aiven_kafka.tms-demo-kafka.service_name
-  topic_name = "tms-demo-pg.public.weather_stations"
+  topic_name = "pg-stations.public.weather_stations"
   partitions = 20
   replication = 2
   config {
@@ -114,7 +114,7 @@ resource "aiven_kafka_topic" "stations-weather-2" {
 resource "aiven_kafka_topic" "sensors-weather" {
   project = var.avn_project_id
   service_name = aiven_kafka.tms-demo-kafka.service_name
-  topic_name = "tms-demo-pg.public.weather_sensors"
+  topic_name = "pg-sensors.public.weather_sensors"
   partitions = 20
   replication = 2
   config {

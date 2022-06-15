@@ -55,7 +55,7 @@ public class EnrichmentTopology {
 
         // Sourced weather stations from PostreSQL table
         KTable<String, WeatherStation> stationTable = 
-        streamsBuilder.table("tms-demo-pg.public.weather_stations", Consumed.with(Serdes.String(), genericSerde))
+        streamsBuilder.table("pg-stations.public.weather_stations", Consumed.with(Serdes.String(), genericSerde))
         .mapValues((key, value) -> WeatherStation.newBuilder()
             .setRoadStationId((Integer)value.get("roadstationid"))
             .setGeohash(calculateGeohash(value))
