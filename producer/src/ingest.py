@@ -60,8 +60,9 @@ def subscribe(client: mqtt_client):
             json_message = json.loads(msg.payload.decode())
             roadstation_id = json_message.get("roadStationId")
             if roadstation_id:
-                producer.produce(topic="observations.weather.raw", key=str(json_message["roadStationId"]), 
-                value=json.dumps(json_message))
+                producer.produce(topic="observations.weather.raw", 
+                    key=str(json.dumps({'roadStationId': json_message["roadStationId"]})),
+                    value=json.dumps(json_message))
             else:
                 print("roadStationId not found: {}".format(msg.payload.decode()))
         except ValueError:
