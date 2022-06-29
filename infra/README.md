@@ -3,8 +3,10 @@
 This plan will create a bunch of services within your Aiven project
 - Kafka
 - Kafka Connect Cluster
-- PostgreSQL source connector for Kafka Connect
+- PostgreSQL CDC source connectors for Kafka Connect
+- BigQuery Sink Connector
 - PostgreSQL database
+- Flink Job for processing observations
 - Topics, Users and ACLs for Kafka
 - M3 Time Series database
 
