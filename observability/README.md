@@ -18,7 +18,6 @@ cd prometheus
 jb init
 jb install github.com/prometheus-operator/kube-prometheus/jsonnet/kube-prometheus@release-0.9
 ./build.sh example-0.9.jsonnet
-printf "  remoteWrite:\n   - url: \"http://highlander:9092/api/v1/prom/remote/write\"\n" >> manifests/prometheus-prometheus.yaml
 ````
 
 Next we will create the Prometheus Operator CRDs and Aiven for M3 secrets
