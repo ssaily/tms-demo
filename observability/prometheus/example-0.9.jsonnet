@@ -12,12 +12,23 @@ local kp =
     values+:: {
       common+: {
         namespace: 'monitoring',
-	platform: 'gke',
-      },
-      prometheus+:: {
-        namespaces+: [],
+	      platform: 'gke',
       },
     },
+      prometheus+:: {
+        prometheus+: {
+          spec+: {
+            additionalScrapeConfigs: {
+              'name': 'additional-scrape-configs',
+              'key': 'prometheus-additional.yaml'
+            },
+            remoteWrite: [{
+              'url': 'http://highlander:9092/api/v1/prom/remote/write'
+            },
+            ],
+          },
+        },
+      },
   };
 
 { 'setup/0namespace-namespace': kp.kubePrometheus.namespace } +
