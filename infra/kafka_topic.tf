@@ -36,7 +36,7 @@ resource "aiven_kafka_topic" "observations-weather-flink" {
 resource "aiven_kafka_topic" "observations-weather-flink-avg" {
   project = var.avn_project_id
   service_name = aiven_kafka.tms-demo-kafka.service_name
-  topic_name = "observations.weather.flink-avg"
+  topic_name = "observations.weather.flink-avg-avro"
   partitions = 20
   replication = 2
   config {

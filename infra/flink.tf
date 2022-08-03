@@ -6,6 +6,13 @@ resource "aiven_flink" "flink" {
   service_name = "tms-demo-flink"
 }
 
+resource "aiven_service_integration" "tms-demo-obs-flink-integr" {
+  project = aiven_flink.flink.project
+  integration_type = "metrics"
+  source_service_name = aiven_flink.flink.service_name
+  destination_service_name = aiven_m3db.tms-demo-obs-m3db.service_name
+}
+
 resource "aiven_service_integration" "flink_to_kafka" {
   project                  = aiven_flink.flink.project
   integration_type         = "flink"
@@ -19,7 +26,7 @@ resource "aiven_flink_table" "source" {
   integration_id = aiven_service_integration.flink_to_kafka.integration_id
   table_name     = "source_observations"
   kafka_topic    = aiven_kafka_topic.observations-weather-raw.topic_name
-  kafka_startup_mode = "latest-offset"
+  kafka_startup_mode = "earliest-offset"
   kafka_key_format = "json"
   kafka_key_fields = ["roadStationId"]
   schema_sql     = <<EOF
@@ -61,13 +68,15 @@ resource "aiven_flink_table" "avg_sink" {
   kafka_topic    = aiven_kafka_topic.observations-weather-flink-avg.topic_name
   kafka_key_format = "json"
   kafka_key_fields = ["roadStationId"]
+  kafka_value_format = "avro"
   schema_sql     = <<EOF
     `roadStationId` INT,
     `id` INT,
     `name` VARCHAR,
     `avgValue` FLOAT,
-    `windowStart` TIMESTAMP,
-    `windowEnd` TIMESTAMP,
+    `msgCount` BIGINT,
+    `windowStart` TIMESTAMP(2),
+    `windowEnd` TIMESTAMP(2),
     `sensorUnit` VARCHAR
   EOF
 }
@@ -97,7 +106,7 @@ resource "aiven_flink_job" "avg_job" {
   ]
   statement = <<EOF
     INSERT INTO ${aiven_flink_table.avg_sink.table_name}
-    SELECT roadStationId, id, name, AVG(sensorValue) as avgValue, window_start, window_end, sensorUnit
+    SELECT roadStationId, id, name, AVG(sensorValue) as avgValue, COUNT(*) msgCount, window_start, window_end, sensorUnit
     FROM TABLE( TUMBLE(TABLE ${aiven_flink_table.source.table_name},
       DESCRIPTOR(measuredTimeTs), INTERVAL '15' MINUTES))
     GROUP BY window_start, window_end, GROUPING SETS ((roadStationId, id, name, sensorUnit))    
