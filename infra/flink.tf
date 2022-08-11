@@ -1,7 +1,7 @@
 resource "aiven_flink" "flink" {
   project = var.avn_project_id
   cloud_name = var.cloud_name
-  project_vpc_id = var.use_cloud_vpc == "true" ? data.aiven_project_vpc.demo-vpc.id : null
+  project_vpc_id = var.use_cloud_vpc == "true" ? data.aiven_project_vpc.demo-vpc[0].id : null
   plan         = "business-8"
   service_name = "tms-demo-flink"
 }
@@ -81,10 +81,10 @@ resource "aiven_flink_table" "avg_sink" {
   EOF
 }
 
-resource "aiven_flink_job" "flink_job" {
+resource "aiven_flink_job" "filter_job" {
   project      = aiven_flink.flink.project
   service_name = aiven_flink.flink.service_name
-  job_name     = "my_job"
+  job_name     = "filter_job"
   table_ids = [
     aiven_flink_table.source.table_id,
     aiven_flink_table.sink.table_id

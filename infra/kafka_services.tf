@@ -2,7 +2,7 @@
 resource "aiven_kafka" "tms-demo-kafka" {
   project = var.avn_project_id
   cloud_name = var.cloud_name
-  project_vpc_id = var.use_cloud_vpc == "true" ? data.aiven_project_vpc.demo-vpc.id : null
+  project_vpc_id = var.use_cloud_vpc ? data.aiven_project_vpc.demo-vpc[0].id : null
   plan = "startup-2"
   service_name = "tms-demo-kafka"
   maintenance_window_dow = "monday"
@@ -23,7 +23,7 @@ resource "aiven_kafka" "tms-demo-kafka" {
 resource "aiven_kafka_connect" "tms-demo-kafka-connect1" {
   project = var.avn_project_id
   cloud_name = var.cloud_name
-  project_vpc_id = var.use_cloud_vpc == "true" ? data.aiven_project_vpc.demo-vpc.id : null
+  project_vpc_id = var.use_cloud_vpc ? data.aiven_project_vpc.demo-vpc[0].id : null
   plan = "startup-4"
   service_name = "tms-demo-kafka-connect1"
   maintenance_window_dow = "monday"
@@ -47,7 +47,7 @@ resource "aiven_kafka_connect" "tms-demo-kafka-connect1" {
 resource "aiven_kafka_connect" "tms-demo-kafka-connect2" {
   project = var.avn_project_id
   cloud_name = var.cloud_name
-  project_vpc_id = var.use_cloud_vpc == "true" ? data.aiven_project_vpc.demo-vpc.id : null
+  project_vpc_id = var.use_cloud_vpc ? data.aiven_project_vpc.demo-vpc[0].id : null
   plan = "startup-4"
   service_name = "tms-demo-kafka-connect2"
   maintenance_window_dow = "monday"

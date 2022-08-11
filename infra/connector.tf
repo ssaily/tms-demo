@@ -104,7 +104,7 @@ resource "aiven_kafka_connector" "bq-sink" {
     "value.converter.schema.registry.url": local.schema_registry_uri,
     "value.converter.basic.auth.credentials.source": "URL",
     "value.converter.schemas.enable": "true",
-    "topics": "weather_stations",    
+    "topics": aiven_kafka_topic.stations-weather-2.topic_name,
     "project": var.bq_project,
     "keySource": "JSON",
     "keyfile": var.bq_key,
@@ -161,38 +161,6 @@ resource "aiven_kafka_connector" "kafka-pg-cdc-sensors" {
   }  
 }
 
-resource "aiven_kafka_connector" "kafka-pg-sink" {
-  project = var.avn_project_id
-  service_name = aiven_kafka_connect.tms-demo-kafka-connect1.service_name
-  connector_name = "kafka-pg-sink"
-
-  config = {  
-    "_aiven.restart.on.failure": "true",
-    "key.converter" : "org.apache.kafka.connect.json.JsonConverter",
-    "key.converter.schemas.enable": "false",
-    "value.converter": "io.confluent.connect.avro.AvroConverter",
-    "value.converter.schema.registry.url": local.schema_registry_uri,
-    "value.converter.basic.auth.credentials.source": "URL",
-    "value.converter.schemas.enable": "true",
-    "connector.class": "io.aiven.connect.jdbc.JdbcSinkConnector",
-    "name": "kafka-pg-sink",
-    "connection.url": "jdbc:postgresql://tms-demo-pg-ssaily-demo.aivencloud.com:13853/defaultdb?sslmode=require",
-    "connection.user": data.aiven_service_user.pg_admin.username,
-    "connection.password": data.aiven_service_user.pg_admin.password,
-    "topics": "observations.weather.flink-avg",
-    "tasks.max":"1",
-    "auto.create": "false",
-    "auto.evolve": "false",
-    "insert.mode": "upsert",
-    "delete.enabled": "true",
-    "pk.mode": "record_value",
-    "pk.fields": "roadStationId, id",
-    "transforms" : "AddNamespace",
-    "transforms.AddNamespace.type" : "org.apache.kafka.connect.transforms.SetSchemaMetadata$Value",
-    "transforms.AddNamespace.schema.name" : "observations.weather.flink-avg-avro-value"
-  }  
-}
-
 resource "aiven_kafka_connector" "kafka-redis-sink" {
   project = var.avn_project_id
   service_name = aiven_kafka_connect.tms-demo-kafka-connect2.service_name
@@ -219,6 +187,10 @@ resource "aiven_kafka_connector" "kafka-redis-sink" {
     "transforms.resetTopic.type": "org.apache.kafka.connect.transforms.RegexRouter",
     "transforms.resetTopic.regex": "(.*)"
     "transforms.resetTopic.replacement": "${aiven_kafka_topic.observations-weather-processed.topic_name}"    
-    "connect.redis.kcql": "INSERT INTO cache- SELECT sensorValue FROM ${aiven_kafka_topic.observations-weather-processed.topic_name} PK rsid,name"
+    "connect.redis.kcql": <<EOF
+      INSERT INTO cache- SELECT name, sensorValue, sensorUnit, measuredTime 
+      FROM ${aiven_kafka_topic.observations-weather-processed.topic_name} 
+      PK rsid,id
+      EOF
   }
 }
