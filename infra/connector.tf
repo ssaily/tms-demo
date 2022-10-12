@@ -29,7 +29,7 @@ resource "aiven_kafka_connector" "kafka-pg-cdc-stations" {
     "value.converter.schema.registry.url": local.schema_registry_uri,
     "value.converter.basic.auth.credentials.source": "URL",
     "value.converter.schemas.enable": "true",
-    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",    
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
     "name": "kafka-pg-cdc-stations",
     "slot.name": "stations_repl_slot",
     "database.hostname": data.aiven_service_component.tms_pg.host,
@@ -39,7 +39,7 @@ resource "aiven_kafka_connector" "kafka-pg-cdc-stations" {
     "database.dbname": "defaultdb",
     "database.server.name": "pg-stations",
     "table.whitelist": "public.weather_stations",
-    "plugin.name": "wal2json",
+    "plugin.name": "pgoutput",
     "database.sslmode": "require",
     "transforms": "unwrap,insertKey,extractKey",
     "transforms.unwrap.type":"io.debezium.transforms.ExtractNewRecordState",
@@ -50,6 +50,9 @@ resource "aiven_kafka_connector" "kafka-pg-cdc-stations" {
     "transforms.extractKey.field":"roadstationid",
     "include.schema.changes": "false"
   }
+  depends_on = [
+    aiven_service_integration.tms-demo-connect-integr
+  ]
 }
 
 resource "aiven_kafka_connector" "kafka-pg-cdc-stations-2" {
@@ -77,7 +80,7 @@ resource "aiven_kafka_connector" "kafka-pg-cdc-stations-2" {
     "database.dbname": "defaultdb",
     "database.server.name": "pg-stations-2",
     "table.whitelist": "public.weather_stations_2",
-    "plugin.name": "wal2json",
+    "plugin.name": "pgoutput",
     "database.sslmode": "require",
     "transforms":"route",
     "transforms.route.regex": "pg-stations-2.public.weather_stations_2",
@@ -85,6 +88,9 @@ resource "aiven_kafka_connector" "kafka-pg-cdc-stations-2" {
     "transforms.route.type": "org.apache.kafka.connect.transforms.RegexRouter",
     "include.schema.changes": "false"
   }
+  depends_on = [
+    aiven_service_integration.tms-demo-connect-integr
+  ]
 }
 
 resource "aiven_kafka_connector" "bq-sink" {
@@ -122,7 +128,10 @@ resource "aiven_kafka_connector" "bq-sink" {
     "transforms.unwrap.delete.handling.mode": "none",
     "transforms.ReplaceField.type": "org.apache.kafka.connect.transforms.ReplaceField$Value",
     "transforms.ReplaceField.blacklist": "roadstationid"
-  } 
+  }
+  depends_on = [
+    aiven_service_integration.tms-demo-connect-integr
+  ]
 }
 
 resource "aiven_kafka_connector" "kafka-pg-cdc-sensors" {
@@ -148,7 +157,7 @@ resource "aiven_kafka_connector" "kafka-pg-cdc-sensors" {
     "database.dbname": "defaultdb",
     "database.server.name": "pg-sensors",
     "table.whitelist": "public.weather_sensors",
-    "plugin.name": "wal2json",
+    "plugin.name": "pgoutput",
     "database.sslmode": "require",
     "transforms": "unwrap,insertKey,extractKey",
     "transforms.unwrap.type":"io.debezium.transforms.ExtractNewRecordState",
@@ -159,6 +168,9 @@ resource "aiven_kafka_connector" "kafka-pg-cdc-sensors" {
     "transforms.extractKey.field":"sensorid",
     "include.schema.changes": "false"
   }  
+  depends_on = [
+    aiven_service_integration.tms-demo-connect-integr
+  ]
 }
 
 resource "aiven_kafka_connector" "kafka-redis-sink" {
@@ -193,4 +205,7 @@ resource "aiven_kafka_connector" "kafka-redis-sink" {
       PK rsid,id
       EOF
   }
+  depends_on = [
+    aiven_service_integration.tms-demo-connect-integr-2
+  ]
 }

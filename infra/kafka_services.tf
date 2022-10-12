@@ -38,9 +38,6 @@ resource "aiven_kafka_connect" "tms-demo-kafka-connect1" {
       kafka_connect = true
     }
   }
-  depends_on = [
-    aiven_kafka.tms-demo-kafka
-  ]
 }
 
 // Kafka connect service
@@ -61,10 +58,7 @@ resource "aiven_kafka_connect" "tms-demo-kafka-connect2" {
     public_access {
       kafka_connect = true
     }
-  }
-  depends_on = [
-    aiven_kafka.tms-demo-kafka
-  ]
+  }  
 }
 
 
@@ -82,12 +76,7 @@ resource "aiven_service_integration" "tms-demo-connect-integr" {
       offset_storage_topic = "__connect_1_offsets"
       config_storage_topic = "__connect_1_configs"
     }
-  }
-
-  depends_on = [
-    aiven_kafka.tms-demo-kafka,
-    aiven_kafka_connect.tms-demo-kafka-connect1
-  ]
+  }  
 }
 
 // Kafka connect service integration
@@ -105,11 +94,6 @@ resource "aiven_service_integration" "tms-demo-connect-integr-2" {
       config_storage_topic = "__connect_2_configs"
     }
   }
-
-  depends_on = [
-    aiven_kafka.tms-demo-kafka,
-    aiven_kafka_connect.tms-demo-kafka-connect2
-  ]
 }
 
 resource "aiven_service_integration" "tms-demo-obs-kafka-integr" {
