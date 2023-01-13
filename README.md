@@ -19,10 +19,24 @@ terraform apply
 ./get-demo-secrets.sh <aiven-project-name>
 ````
 
-## Import weather station metadata to PostgreSQL db
+## Prepare Postgres
+
+### Import weather station metadata
 ```
 cd database
 ./import-stations.sh
+```
+
+### Create publication for Debezium CDC
+```
+avn service cli tms-demo-pg
+
+=> CREATE EXTENSION aiven_extras CASCADE;
+=> SELECT *
+FROM aiven_extras.pg_create_publication_for_all_tables(
+    'station_publication',
+    'INSERT,UPDATE,DELETE'
+    );
 ```
 
 ## Create k8s resources
