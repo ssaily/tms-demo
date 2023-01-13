@@ -17,12 +17,27 @@ spec:
     spec:
       containers:      
       - name: tms-demo-ingest
-        image: ssaily/tms-demo-ingest:0.2.0
-        env:          
+        image: ssaily/tms-demo-ingest:0.2.1
+        securityContext:
+          seccompProfile:
+            type: Unconfined
+        env:
+          - name: CLIENT_PREFIX
+            value: "weather-"
           - name: MQTT_USER
             value: digitraffic
           - name: MQTT_PASSWORD
             value: digitrafficPassword
+          - name: MQTT_HOST
+            value: tie.digitraffic.fi
+          - name: MQTT_PORT
+            value: "61619"
+          - name: MQTT_TOPICS
+            value: "weather-v2/+/+"
+          - name: MSG_KEY
+            value: roadStationId
+          - name: KAFKA_TOPIC
+            value: observations.weather.raw
           - name: PYTHONUNBUFFERED
             value: "1"
         envFrom:          
@@ -31,6 +46,9 @@ spec:
         volumeMounts:
         - mountPath: /etc/streams/tms-ingest-cert
           name: tms-ingest-cert
+#        - mountPath: /etc/streams
+#          name: mqtt-topic-map
+
         resources:
           limits:
             memory: 512Mi
@@ -40,6 +58,9 @@ spec:
             cpu: "100m"
         imagePullPolicy: Always
       volumes:
+#        - name: mqtt-topic-map
+#          configMap:
+#            name: mqtt-topic-map
         - name: tms-ingest-cert
           secret:
             secretName: tms-ingest-cert
