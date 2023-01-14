@@ -205,7 +205,7 @@ resource "aiven_kafka_connector" "kafka-redis-sink" {
     "connect.redis.kcql": <<EOF
       INSERT INTO cache- SELECT sensorName, sensorValue, sensorUnit, measuredTime 
       FROM ${aiven_kafka_topic.observations-weather-municipality.topic_name} 
-      PK rsid,id
+      PK rsid,sensorId
       EOF
   }
   depends_on = [
