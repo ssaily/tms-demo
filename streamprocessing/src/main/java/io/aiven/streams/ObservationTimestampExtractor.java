@@ -9,7 +9,7 @@ public class ObservationTimestampExtractor implements TimestampExtractor {
 
     @Override
     public long extract(ConsumerRecord<Object, Object> record, long partitionTime) {
-        
+
         if (record.value() instanceof DigitrafficMessage) {
             DigitrafficMessage msg = (DigitrafficMessage) record.value();
             return msg.getMeasuredTime();
@@ -17,5 +17,5 @@ public class ObservationTimestampExtractor implements TimestampExtractor {
 
         return 0;
     }
-    
+
 }

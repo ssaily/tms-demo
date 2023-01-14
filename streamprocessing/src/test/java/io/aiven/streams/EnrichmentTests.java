@@ -57,9 +57,9 @@ class EnrichmentTests {
     protected TestOutputTopic<String, DigitrafficMessage> enrichedOutputTopic;
 
     private TopologyTestDriver testDriver;
-    
+
     @BeforeEach
-    public void setup() throws IOException, RestClientException {        
+    public void setup() throws IOException, RestClientException {
 
         Properties config = new Properties();
         config.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "tms-test-enrichment");
@@ -79,11 +79,11 @@ class EnrichmentTests {
         digitrafficSerde.configure(schemaRegistryConfig, false);
 
         Serde<GenericRecord> stationSerde = new GenericAvroSerde();
-        stationSerde.configure(schemaRegistryConfig, false);        
+        stationSerde.configure(schemaRegistryConfig, false);
 
         Topology topology = EnrichmentTopology.kafkaStreamTopology(MOCK_SCHEMA_REGISTRY_URL);
         logger.info(topology.describe().toString());
-        testDriver = new TopologyTestDriver(topology, config);        
+        testDriver = new TopologyTestDriver(topology, config);
 
         rawInputTopic = testDriver.createInputTopic(
             "observations.weather.raw",
@@ -107,17 +107,17 @@ class EnrichmentTests {
     }
 
     @AfterEach
-    void afterEach() {        
+    void afterEach() {
         testDriver.close();
         MockSchemaRegistry.dropScope(SCHEMA_REGISTRY_SCOPE);
     }
 
     @Test
-    public void shouldEnrichMunicipality() throws IOException, RestClientException  {
+    public void shouldEnrichSensorAndMunicipality() throws IOException, RestClientException  {
 
         Path resourceDirectory = Paths.get("src","test","resources");
         String stationSchemaPath = resourceDirectory.toFile().getAbsolutePath() + "/station.avsc";
-        String sensorSchemaPath = resourceDirectory.toFile().getAbsolutePath() + "/sensor.avsc";        
+        String sensorSchemaPath = resourceDirectory.toFile().getAbsolutePath() + "/sensor.avsc";
         Schema stationSchema = new Schema.Parser().parse(new File(stationSchemaPath));
         Schema sensorSchema = new Schema.Parser().parse(new File(sensorSchemaPath));
 
@@ -128,7 +128,7 @@ class EnrichmentTests {
         stationRecord.put("province", "Pohjois-Pohjanmaa");
         stationRecord.put("latitude", 64.006442);
         stationRecord.put("longitude", 25.755648);
-        
+
         stationInputTopic.pipeInput("12016", stationRecord);
 
         GenericRecord sensorRecord = new GenericData.Record(sensorSchema);
@@ -143,7 +143,7 @@ class EnrichmentTests {
         logger.debug(jsonObj.asText());
         rawInputTopic.pipeInput("12016", jsonObj);
 
-        assertThat(enrichedOutputTopic.readKeyValue(), equalTo(new KeyValue<>("12016", 
+        assertThat(enrichedOutputTopic.readKeyValue(), equalTo(new KeyValue<>("12016",
             DigitrafficMessage.newBuilder()
                 .setSensorId(132)
                 .setRoadStationId(12016)
@@ -154,26 +154,6 @@ class EnrichmentTests {
                 .setProvince("Pohjois-Pohjanmaa")
                 .setGeohash("ue6k4h")
                 .setMeasuredTime(Instant.parse("2020-12-02T20:42:00Z").toEpochMilli()).build())));
-        
-    }    
-/* 
-    @Test
-    public void shouldGenerateAvro() throws IOException, RestClientException {
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode jsonObj = mapper.readTree("{\"id\": 132, \"roadStationId\": 12016, \"name\": \"KUITUVASTE_SUURI_1\", \"oldName\": " +
-            "\"fiberresponsebig1\", \"shortName\": \"KVaS1 \", \"sensorValue\": 0.0, \"sensorUnit\": \"###\", " +
-            "\"measuredTime\": \"2020-12-02T20:42:00Z\"}");
-        rawInputTopic.pipeInput("12016", jsonObj);
 
-        assertThat(processedOutputTopic.readKeyValue(), equalTo(new KeyValue<>("12016", 
-            DigitrafficMessage.newBuilder()
-                .setSensorId(132)
-                .setRoadStationId(12016)
-                .setSensorName("KUITUVASTE_SUURI_1")
-                .setSensorValue(0.0f)
-                .setSensorUnit("###")
-                .setMeasuredTime(Instant.parse("2020-12-02T20:42:00Z").toEpochMilli()).build())));
-        
     }
-*/
 }

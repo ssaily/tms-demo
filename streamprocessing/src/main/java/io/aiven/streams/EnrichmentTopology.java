@@ -31,7 +31,7 @@ import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 
 @Component
 @Profile("enrichment")
-public class EnrichmentTopology {    
+public class EnrichmentTopology {
 
     private EnrichmentTopology() {
         /*
@@ -39,22 +39,22 @@ public class EnrichmentTopology {
          */
     }
 
-    @Bean    
+    @Bean
     public static Topology kafkaStreamTopology(@Value("${spring.application.schema-registry}") String schemaRegistryUrl) {
         final StreamsBuilder streamsBuilder = new StreamsBuilder();
-        
+
         // schema registry
         Map<String, String> serdeConfig = new HashMap<>();
         serdeConfig.put("schema.registry.url", schemaRegistryUrl);
         serdeConfig.put("basic.auth.credentials.source", "URL");
         Serde<DigitrafficMessage> digitrafficSerde = new SpecificAvroSerde<>();
-        Serde<GenericRecord> genericSerde = new GenericAvroSerde();        
+        Serde<GenericRecord> genericSerde = new GenericAvroSerde();
         digitrafficSerde.configure(serdeConfig, false);
         genericSerde.configure(serdeConfig, false);
-        
+
 
         // Sourced weather stations from PostreSQL table
-        KTable<String, WeatherStation> stationTable = 
+        KTable<String, WeatherStation> stationTable =
         streamsBuilder.table("pg-stations.public.weather_stations", Consumed.with(Serdes.String(), genericSerde))
         .mapValues((key, value) -> WeatherStation.newBuilder()
             .setRoadStationId((Integer)value.get("roadstationid"))
@@ -63,60 +63,60 @@ public class EnrichmentTopology {
             .setMunicipality(value.get("municipality") != null ? value.get("municipality").toString() : "")
             .setProvince(value.get("province") != null ? value.get("province").toString() : "")
             .build()
-            );        
+            );
 
         // Sourced weeather sensors from Postgres table
         // We are using GlobalKTable here because the sensor table has different primary key (sensorId)
 
         GlobalKTable<String, GenericRecord> sensorTable =
         streamsBuilder.globalTable("pg-sensors.public.weather_sensors", Consumed.with(Serdes.String(), genericSerde));
-        
-        KStream<String, JsonNode> jsonWeatherStream = streamsBuilder.stream("observations.weather.raw", 
+
+        KStream<String, JsonNode> jsonWeatherStream = streamsBuilder.stream("observations.weather.raw",
             Consumed.with(Serdes.String(), new JsonSerde<>(JsonNode.class)));
-        
-        jsonWeatherStream        
+
+        jsonWeatherStream
         .filter((k, v) -> !k.isBlank() && v.get("time") != null)
         .mapValues(EnrichmentTopology::convertToAvro)
-        .filter((k, v) -> !k.isBlank())
-        .join(stationTable, (measurement, station) -> 
-            DigitrafficMessage.newBuilder(measurement)
-            .setMunicipality(StringEscapeUtils.unescapeJava(station.getMunicipality()))
-            .setProvince(StringEscapeUtils.unescapeJava(station.getProvince()))
-            .setGeohash(station.getGeohash())            
-            .build()
-        )        
-        .join(sensorTable, 
-            (key, value) -> String.valueOf(value.getSensorId()), 
-            (ValueJoiner<DigitrafficMessage, GenericRecord, DigitrafficMessage>) (left, right) -> 
-            DigitrafficMessage.newBuilder(left)            
-            .setSensorUnit(right.get("unit").toString())
-            .setSensorName(right.get("name").toString())
-            .build()            
-        )             
+        .join(stationTable,
+            (measurement, station) -> // ValueJoiner
+                DigitrafficMessage.newBuilder(measurement)
+                .setMunicipality(StringEscapeUtils.unescapeJava(station.getMunicipality()))
+                .setProvince(StringEscapeUtils.unescapeJava(station.getProvince()))
+                .setGeohash(station.getGeohash())
+                .build()
+        )
+        .join(sensorTable,
+            (key, value) -> String.valueOf(value.getSensorId()), // KeyValueMapper
+            (measurement, sensor) -> // ValueJoiner
+                DigitrafficMessage.newBuilder(measurement)
+                .setSensorUnit(sensor.get("unit").toString())
+                .setSensorName(sensor.get("name").toString())
+                .build()
+        )
         .to("observations.weather.municipality", Produced.with(Serdes.String(), digitrafficSerde));
-        
-        return streamsBuilder.build();  
+
+        return streamsBuilder.build();
     }
 
-    private static final String calculateGeohash(GenericRecord station) {        
-        return GeoHash.geoHashStringWithCharacterPrecision(Double.parseDouble(station.get("latitude").toString()), 
+    private static final String calculateGeohash(GenericRecord station) {
+        return GeoHash.geoHashStringWithCharacterPrecision(Double.parseDouble(station.get("latitude").toString()),
         Double.parseDouble(station.get("longitude").toString()), 6);
     }
 
-    private static final DigitrafficMessage convertToAvro(String k, JsonNode v) {        
-        Optional<JsonNode> sensorId = Optional.ofNullable(v.get("sensorId"));                        
+    private static final DigitrafficMessage convertToAvro(String k, JsonNode v) {
+        Optional<JsonNode> sensorId = Optional.ofNullable(v.get("sensorId"));
         Optional<JsonNode> value = Optional.ofNullable(v.get("value"));
-        Optional<JsonNode> time = Optional.ofNullable(v.get("time"));            
-    
+        Optional<JsonNode> time = Optional.ofNullable(v.get("time"));
+
         if (sensorId.isPresent() && value.isPresent() && time.isPresent()) {
-            return DigitrafficMessage.newBuilder()        
-            .setSensorId(sensorId.get().asInt())            
-            .setSensorValue(value.get().asDouble())            
+            return DigitrafficMessage.newBuilder()
+            .setSensorId(sensorId.get().asInt())
+            .setSensorValue(value.get().asDouble())
             .setRoadStationId(Integer.parseInt(k))
             .setMeasuredTime(Long.parseLong(time.get().asText()) * 1000)
-            .build();            
+            .build();
         } else {
             return null;
-        }        
+        }
     }
 }

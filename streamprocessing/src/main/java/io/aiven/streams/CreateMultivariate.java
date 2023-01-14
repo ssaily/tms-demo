@@ -27,35 +27,35 @@ import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 @Component
 @Profile("multivariate")
 public class CreateMultivariate {
-    private static Logger logger = LoggerFactory.getLogger(CalculationsTopology.class);        
-    
+    private static Logger logger = LoggerFactory.getLogger(CalculationsTopology.class);
+
     private CreateMultivariate() {
         /*
          * Private Constructor will prevent the instantiation of this class directly
          */
     }
 
-    @Bean    
+    @Bean
     public static Topology kafkaStreamTopology(@Value("${spring.application.schema-registry}") String schemaRegistryUrl) {
-            
+
         final StreamsBuilder streamsBuilder = new StreamsBuilder();
-        
+
         // schema registry
         Map<String, String> serdeConfig = new HashMap<>();
         serdeConfig.put("schema.registry.url", schemaRegistryUrl);
         serdeConfig.put("basic.auth.credentials.source", "URL");
         final Serde<DigitrafficMessage> valueSerde = new SpecificAvroSerde<>();
-        final Serde<DigitrafficMessageMV> valueMvSerde = new SpecificAvroSerde<>(); 
+        final Serde<DigitrafficMessageMV> valueMvSerde = new SpecificAvroSerde<>();
         valueSerde.configure(serdeConfig, false);
         valueMvSerde.configure(serdeConfig, false);
 
         Grouped<String, DigitrafficMessage> groupedMessage = Grouped.with(Serdes.String(), valueSerde);
-        
-        streamsBuilder.stream("observations.weather.municipality", 
-            Consumed.with(Serdes.String(), valueSerde).withTimestampExtractor(new ObservationTimestampExtractor()))        
-        .filter((k, v) -> v.getSensorName() != null)        
-        .groupByKey(groupedMessage) 
-        .windowedBy(SessionWindows.with(Duration.ofMinutes(1)).grace(Duration.ofMinutes(15)))                
+
+        streamsBuilder.stream("observations.weather.municipality",
+            Consumed.with(Serdes.String(), valueSerde).withTimestampExtractor(new ObservationTimestampExtractor()))
+        .filter((k, v) -> v.getSensorName() != null)
+        .groupByKey(groupedMessage)
+        .windowedBy(SessionWindows.with(Duration.ofMinutes(1)).grace(Duration.ofMinutes(15)))
         .aggregate(
             () -> new DigitrafficMessageMV(-1, 0L, "", "", "", new HashMap<>()) , /* initializer */
             (aggKey, newValue, aggValue) -> {
@@ -68,7 +68,7 @@ public class CreateMultivariate {
                 }
                 Map<String, Double> m = aggValue.getMeasurements();
                 m.put(newValue.getSensorName(), newValue.getSensorValue());
-                return aggValue;                
+                return aggValue;
             }, /* adder */
             (aggKey, leftAggValue, rightAggValue) -> {
                 leftAggValue.getMeasurements().putAll(rightAggValue.getMeasurements());
@@ -84,11 +84,11 @@ public class CreateMultivariate {
             return new KeyValue<>(String.valueOf(value.getRoadStationId()), v);
         })
         .to("observations.weather.multivariate", Produced.with(Serdes.String(), valueMvSerde));
-        
-        
+
+
         return streamsBuilder.build();
     }
-    
-    
-    
+
+
+
 }

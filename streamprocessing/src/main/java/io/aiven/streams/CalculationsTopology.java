@@ -26,40 +26,40 @@ import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 @Component
 @Profile("calculations")
 public class CalculationsTopology {
-    private static Logger logger = LoggerFactory.getLogger(CalculationsTopology.class);        
-    
+    private static Logger logger = LoggerFactory.getLogger(CalculationsTopology.class);
+
     private CalculationsTopology() {
         /*
          * Private Constructor will prevent the instantiation of this class directly
          */
     }
 
-    @Bean    
+    @Bean
     public static Topology kafkaStreamTopology(@Value("${spring.application.schema-registry}") String schemaRegistryUrl) {
-            
+
         final StreamsBuilder streamsBuilder = new StreamsBuilder();
-        
+
         // schema registry
         Map<String, String> serdeConfig = new HashMap<>();
         serdeConfig.put("schema.registry.url", schemaRegistryUrl);
         serdeConfig.put("basic.auth.credentials.source", "URL");
         Serde<DigitrafficMessage> valueSerde = new SpecificAvroSerde<>();
         Serde<CountAndSum> aggrSerde = new SpecificAvroSerde<>();
-        Serde<DigitrafficAggregate> resultSerde = new SpecificAvroSerde<>();        
-        
+        Serde<DigitrafficAggregate> resultSerde = new SpecificAvroSerde<>();
+
         valueSerde.configure(serdeConfig, false);
         aggrSerde.configure(serdeConfig, false);
         resultSerde.configure(serdeConfig, false);
 
         Grouped<String, DigitrafficMessage> groupedMessage = Grouped.with(Serdes.String(), valueSerde);
-        
-        KTable<Windowed<String>, DigitrafficAggregate> windows = streamsBuilder.stream("observations.weather.municipality", 
-            Consumed.with(Serdes.String(), valueSerde).withTimestampExtractor(new ObservationTimestampExtractor()))        
+
+        KTable<Windowed<String>, DigitrafficAggregate> windows = streamsBuilder.stream("observations.weather.municipality",
+            Consumed.with(Serdes.String(), valueSerde).withTimestampExtractor(new ObservationTimestampExtractor()))
         .filter((k, v) -> v.getSensorName() != null && v.getSensorName().contentEquals("ILMA"))
         .selectKey((key, value) -> key + "-" + String.valueOf(value.getSensorId()))
-        .groupByKey(groupedMessage) 
-        .windowedBy(TimeWindows.of(Duration.ofMinutes(60)).advanceBy(Duration.ofMinutes(60)).grace(Duration.ofMinutes(10)))                
-        .aggregate(() -> new CountAndSum(0, 0, "", 0L, 0.0), 
+        .groupByKey(groupedMessage)
+        .windowedBy(TimeWindows.of(Duration.ofMinutes(60)).advanceBy(Duration.ofMinutes(60)).grace(Duration.ofMinutes(10)))
+        .aggregate(() -> new CountAndSum(0, 0, "", 0L, 0.0),
             (key, value, aggregate) -> {
                 if (aggregate.getRoadStationId() == 0) {
                     aggregate.setRoadStationId(value.getRoadStationId());
@@ -69,8 +69,8 @@ public class CalculationsTopology {
                 aggregate.setCount(aggregate.getCount() + 1);
                 aggregate.setSum(aggregate.getSum() + value.getSensorValue());
                 return aggregate;
-            }, Materialized.with(Serdes.String(), aggrSerde))  
-        .suppress(Suppressed.untilWindowCloses(BufferConfig.unbounded()))      
+            }, Materialized.with(Serdes.String(), aggrSerde))
+        .suppress(Suppressed.untilWindowCloses(BufferConfig.unbounded()))
         .mapValues((key, value) -> DigitrafficAggregate.newBuilder()
             .setId(value.getId())
             .setRoadStationId(value.getRoadStationId())
@@ -82,13 +82,13 @@ public class CalculationsTopology {
 
         windows
             .toStream()
-            .map((key, value) -> 
+            .map((key, value) ->
                 new KeyValue<String, DigitrafficAggregate>(String.valueOf(value.getRoadStationId()), value))
             .to("observations.weather.avg-air-temperature", Produced.with(Serdes.String(), resultSerde));
-                        
+
         return streamsBuilder.build();
     }
-    
-    
-    
+
+
+
 }

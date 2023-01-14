@@ -43,12 +43,12 @@ class CalculationsTests {
 
     protected TestOutputTopic<String, DigitrafficAggregate> avgOutputTopic;
     protected TestInputTopic<String, DigitrafficMessage> processedInputTopic;
-    
+
     private TopologyTestDriver testDriver;
-    
+
     @BeforeEach
-    public void setup() throws IOException, RestClientException {        
-        
+    public void setup() throws IOException, RestClientException {
+
 
         Map<String, String> schemaRegistryConfig = Collections
         .singletonMap(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, MOCK_SCHEMA_REGISTRY_URL);
@@ -73,7 +73,7 @@ class CalculationsTests {
 
         Topology topology = CalculationsTopology.kafkaStreamTopology(MOCK_SCHEMA_REGISTRY_URL);
         logger.info(topology.describe().toString());
-        testDriver = new TopologyTestDriver(topology, config);               
+        testDriver = new TopologyTestDriver(topology, config);
 
         avgOutputTopic = testDriver.createOutputTopic(
             "observations.weather.avg-air-temperature",
@@ -83,12 +83,12 @@ class CalculationsTests {
         processedInputTopic = testDriver.createInputTopic(
             "observations.weather.municipality",
             stringSerde.serializer(),
-            digitrafficSerde.serializer()); 
-        
+            digitrafficSerde.serializer());
+
     }
 
     @AfterEach
-    void afterEach() {        
+    void afterEach() {
         testDriver.close();
         MockSchemaRegistry.dropScope(SCHEMA_REGISTRY_SCOPE);
     }
@@ -119,16 +119,16 @@ class CalculationsTests {
             .setSensorValue(2.0f)
             .setSensorUnit("C")
             .setMeasuredTime(Instant.parse("2020-12-02T21:11:00Z").toEpochMilli()).build());
-            
-        assertThat(avgOutputTopic.readKeyValue(), equalTo(new KeyValue<>("12016", 
+
+        assertThat(avgOutputTopic.readKeyValue(), equalTo(new KeyValue<>("12016",
             DigitrafficAggregate.newBuilder()
                 .setId(1)
                 .setRoadStationId(12016)
                 .setName("ILMA")
-                .setSensorValue(0.5f)            
+                .setSensorValue(0.5f)
                 .setMeasuredTime(Instant.parse("2020-12-02T21:00:00Z").toEpochMilli()).build())));
-        
-    }    
+
+    }
 
 
 }

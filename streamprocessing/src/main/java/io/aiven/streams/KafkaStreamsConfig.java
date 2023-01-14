@@ -32,23 +32,23 @@ public class KafkaStreamsConfig {
         // inject SSL related properties
         props.putAll(kafkaProperties.getSsl().buildProperties());
         props.putAll(kafkaProperties.getProperties());
-        
+
         // common client configurations
-        props.put(CommonClientConfigs.CLIENT_DNS_LOOKUP_CONFIG, "use_all_dns_ips");        
-        
+        props.put(CommonClientConfigs.CLIENT_DNS_LOOKUP_CONFIG, "use_all_dns_ips");
+
         // stream config centric ones
-        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.getBootstrapServers());        
+        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.getBootstrapServers());
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, appName);
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, JsonSerde.class);
         props.put(StreamsConfig.STATE_DIR_CONFIG, "data");
 
-        // producer config        
+        // producer config
         props.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "gzip");
         props.put(ProducerConfig.RETRIES_CONFIG, "3");
         // others
         props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, JsonNode.class);
-        
+
         final KafkaStreams kafkaStreams = new KafkaStreams((Topology) appContext.getBean("kafkaStreamTopology"), props);
 
         kafkaStreams.start();
