@@ -190,7 +190,7 @@ resource "aiven_kafka_connector" "kafka-redis-sink" {
     "value.converter.schema.registry.url": local.schema_registry_uri,
     "value.converter.basic.auth.credentials.source": "URL",
     "value.converter.schemas.enable": "true",
-    "topics": aiven_kafka_topic.observations-weather-processed.topic_name,
+    "topics": aiven_kafka_topic.observations-weather-municipality.topic_name,
     "connect.redis.host": aiven_redis.tms-demo-redis.service_host,
     "connect.redis.port": aiven_redis.tms-demo-redis.service_port,
     "connect.redis.password": aiven_redis.tms-demo-redis.service_password,
@@ -201,10 +201,10 @@ resource "aiven_kafka_connector" "kafka-redis-sink" {
     "transforms.insertField.topic.field":"rsid",
     "transforms.resetTopic.type": "org.apache.kafka.connect.transforms.RegexRouter",
     "transforms.resetTopic.regex": "(.*)"
-    "transforms.resetTopic.replacement": "${aiven_kafka_topic.observations-weather-processed.topic_name}"    
+    "transforms.resetTopic.replacement": "${aiven_kafka_topic.observations-weather-municipality.topic_name}"    
     "connect.redis.kcql": <<EOF
-      INSERT INTO cache- SELECT name, sensorValue, sensorUnit, measuredTime 
-      FROM ${aiven_kafka_topic.observations-weather-processed.topic_name} 
+      INSERT INTO cache- SELECT sensorName, sensorValue, sensorUnit, measuredTime 
+      FROM ${aiven_kafka_topic.observations-weather-municipality.topic_name} 
       PK rsid,id
       EOF
   }

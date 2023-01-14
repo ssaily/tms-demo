@@ -53,18 +53,18 @@ public class CalculationsTopology {
 
         Grouped<String, DigitrafficMessage> groupedMessage = Grouped.with(Serdes.String(), valueSerde);
         
-        KTable<Windowed<String>, DigitrafficAggregate> windows = streamsBuilder.stream("observations.weather.processed", 
+        KTable<Windowed<String>, DigitrafficAggregate> windows = streamsBuilder.stream("observations.weather.municipality", 
             Consumed.with(Serdes.String(), valueSerde).withTimestampExtractor(new ObservationTimestampExtractor()))        
-        .filter((k, v) -> v.getName() != null && v.getName().contentEquals("ILMA"))
-        .selectKey((key, value) -> key + "-" + String.valueOf(value.getId()))
+        .filter((k, v) -> v.getSensorName() != null && v.getSensorName().contentEquals("ILMA"))
+        .selectKey((key, value) -> key + "-" + String.valueOf(value.getSensorId()))
         .groupByKey(groupedMessage) 
         .windowedBy(TimeWindows.of(Duration.ofMinutes(60)).advanceBy(Duration.ofMinutes(60)).grace(Duration.ofMinutes(10)))                
         .aggregate(() -> new CountAndSum(0, 0, "", 0L, 0.0), 
             (key, value, aggregate) -> {
                 if (aggregate.getRoadStationId() == 0) {
                     aggregate.setRoadStationId(value.getRoadStationId());
-                    aggregate.setId(value.getId());
-                    aggregate.setName(value.getName());
+                    aggregate.setId(value.getSensorId());
+                    aggregate.setName(value.getSensorName());
                 }
                 aggregate.setCount(aggregate.getCount() + 1);
                 aggregate.setSum(aggregate.getSum() + value.getSensorValue());

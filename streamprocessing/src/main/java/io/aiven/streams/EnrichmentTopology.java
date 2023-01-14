@@ -1,6 +1,5 @@
 package io.aiven.streams;
 
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -10,13 +9,14 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
+import org.apache.kafka.streams.kstream.GlobalKTable;
 import org.apache.kafka.streams.kstream.Produced;
+import org.apache.kafka.streams.kstream.ValueJoiner;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
@@ -47,9 +47,9 @@ public class EnrichmentTopology {
         Map<String, String> serdeConfig = new HashMap<>();
         serdeConfig.put("schema.registry.url", schemaRegistryUrl);
         serdeConfig.put("basic.auth.credentials.source", "URL");
-        Serde<DigitrafficMessage> valueSerde = new SpecificAvroSerde<>();
+        Serde<DigitrafficMessage> digitrafficSerde = new SpecificAvroSerde<>();
         Serde<GenericRecord> genericSerde = new GenericAvroSerde();        
-        valueSerde.configure(serdeConfig, false);
+        digitrafficSerde.configure(serdeConfig, false);
         genericSerde.configure(serdeConfig, false);
         
 
@@ -62,21 +62,21 @@ public class EnrichmentTopology {
             .setName("")
             .setMunicipality(value.get("municipality") != null ? value.get("municipality").toString() : "")
             .setProvince(value.get("province") != null ? value.get("province").toString() : "")
-            .build());        
+            .build()
+            );        
 
+        // Sourced weeather sensors from Postgres table
+        // We are using GlobalKTable here because the sensor table has different primary key (sensorId)
+
+        GlobalKTable<String, GenericRecord> sensorTable =
+        streamsBuilder.globalTable("pg-sensors.public.weather_sensors", Consumed.with(Serdes.String(), genericSerde));
+        
         KStream<String, JsonNode> jsonWeatherStream = streamsBuilder.stream("observations.weather.raw", 
             Consumed.with(Serdes.String(), new JsonSerde<>(JsonNode.class)));
-
+        
         jsonWeatherStream        
-        .filter((k, v) -> !k.isBlank() && v.get("measuredTime") != null)
-        .map((k,v) -> convertToAvro(v))        
-        .to("observations.weather.processed", Produced.with(Serdes.String(), valueSerde));     
-
-        KStream<String, DigitrafficMessage> avroWeatherStream = 
-            streamsBuilder.stream("observations.weather.processed", 
-        Consumed.with(Serdes.String(), valueSerde).withTimestampExtractor(new ObservationTimestampExtractor()));
-
-        avroWeatherStream
+        .filter((k, v) -> !k.isBlank() && v.get("time") != null)
+        .mapValues(EnrichmentTopology::convertToAvro)
         .filter((k, v) -> !k.isBlank())
         .join(stationTable, (measurement, station) -> 
             DigitrafficMessage.newBuilder(measurement)
@@ -85,7 +85,15 @@ public class EnrichmentTopology {
             .setGeohash(station.getGeohash())            
             .build()
         )        
-        .to("observations.weather.municipality", Produced.with(Serdes.String(), valueSerde));
+        .join(sensorTable, 
+            (key, value) -> String.valueOf(value.getSensorId()), 
+            (ValueJoiner<DigitrafficMessage, GenericRecord, DigitrafficMessage>) (left, right) -> 
+            DigitrafficMessage.newBuilder(left)            
+            .setSensorUnit(right.get("unit").toString())
+            .setSensorName(right.get("name").toString())
+            .build()            
+        )             
+        .to("observations.weather.municipality", Produced.with(Serdes.String(), digitrafficSerde));
         
         return streamsBuilder.build();  
     }
@@ -95,27 +103,20 @@ public class EnrichmentTopology {
         Double.parseDouble(station.get("longitude").toString()), 6);
     }
 
-    private static final KeyValue<String, DigitrafficMessage> convertToAvro(JsonNode v) {        
-        Optional<JsonNode> stationId = Optional.ofNullable(v.get("roadStationId"));
-        if (stationId.isPresent()) {            
-            Optional<JsonNode> id = Optional.ofNullable(v.get("id"));            
-            Optional<JsonNode> name = Optional.ofNullable(v.get("name"));
-            Optional<JsonNode> value = Optional.ofNullable(v.get("sensorValue"));
-            Optional<JsonNode> time = Optional.ofNullable(v.get("measuredTime"));
-            Optional<JsonNode> unit = Optional.ofNullable(v.get("sensorUnit"));
-        
-            final DigitrafficMessage msg = DigitrafficMessage.newBuilder()
-            .setId(id.get().asInt())
-            .setName(name.get().asText())
-            .setSensorValue(value.get().asDouble())
-            .setRoadStationId(stationId.get().asInt())
-            .setMeasuredTime(Instant.parse(time.get().asText()).toEpochMilli())
-            .setSensorUnit(unit.get().asText())
-            .build();
-            return KeyValue.pair(stationId.get().asText(), msg);
+    private static final DigitrafficMessage convertToAvro(String k, JsonNode v) {        
+        Optional<JsonNode> sensorId = Optional.ofNullable(v.get("sensorId"));                        
+        Optional<JsonNode> value = Optional.ofNullable(v.get("value"));
+        Optional<JsonNode> time = Optional.ofNullable(v.get("time"));            
+    
+        if (sensorId.isPresent() && value.isPresent() && time.isPresent()) {
+            return DigitrafficMessage.newBuilder()        
+            .setSensorId(sensorId.get().asInt())            
+            .setSensorValue(value.get().asDouble())            
+            .setRoadStationId(Integer.parseInt(k))
+            .setMeasuredTime(Long.parseLong(time.get().asText()) * 1000)
+            .build();            
         } else {
-            return KeyValue.pair("", null);
-        }
-
+            return null;
+        }        
     }
 }

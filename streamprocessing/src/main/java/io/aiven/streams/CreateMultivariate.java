@@ -53,7 +53,7 @@ public class CreateMultivariate {
         
         streamsBuilder.stream("observations.weather.municipality", 
             Consumed.with(Serdes.String(), valueSerde).withTimestampExtractor(new ObservationTimestampExtractor()))        
-        .filter((k, v) -> v.getName() != null)        
+        .filter((k, v) -> v.getSensorName() != null)        
         .groupByKey(groupedMessage) 
         .windowedBy(SessionWindows.with(Duration.ofMinutes(1)).grace(Duration.ofMinutes(15)))                
         .aggregate(
@@ -67,7 +67,7 @@ public class CreateMultivariate {
                     aggValue.setMeasuredTime(newValue.getMeasuredTime());
                 }
                 Map<String, Double> m = aggValue.getMeasurements();
-                m.put(newValue.getName(), newValue.getSensorValue());
+                m.put(newValue.getSensorName(), newValue.getSensorValue());
                 return aggValue;                
             }, /* adder */
             (aggKey, leftAggValue, rightAggValue) -> {

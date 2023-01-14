@@ -81,7 +81,7 @@ class CalculationsTests {
             aggrSerde.deserializer());
 
         processedInputTopic = testDriver.createInputTopic(
-            "observations.weather.processed",
+            "observations.weather.municipality",
             stringSerde.serializer(),
             digitrafficSerde.serializer()); 
         
@@ -96,26 +96,26 @@ class CalculationsTests {
     @Test
     public void shouldCalcAverage() throws IOException, RestClientException  {
         processedInputTopic.pipeInput("12016", DigitrafficMessage.newBuilder()
-            .setId(1)
+            .setSensorId(1)
             .setRoadStationId(12016)
-            .setName("ILMA")
+            .setSensorName("ILMA")
             .setSensorValue(0.0f)
             .setSensorUnit("C")
             .setMeasuredTime(Instant.parse("2020-12-02T20:00:00Z").toEpochMilli()).build());
 
         processedInputTopic.pipeInput("12016", DigitrafficMessage.newBuilder()
-            .setId(1)
+            .setSensorId(1)
             .setRoadStationId(12016)
-            .setName("ILMA")
+            .setSensorName("ILMA")
             .setSensorValue(1.0f)
             .setSensorUnit("C")
             .setMeasuredTime(Instant.parse("2020-12-02T20:59:00Z").toEpochMilli()).build());
 
         // one more event to move the streaming time outside grace period (10 minutes)
         processedInputTopic.pipeInput("12016", DigitrafficMessage.newBuilder()
-            .setId(1)
+            .setSensorId(1)
             .setRoadStationId(12016)
-            .setName("ILMA")
+            .setSensorName("ILMA")
             .setSensorValue(2.0f)
             .setSensorUnit("C")
             .setMeasuredTime(Instant.parse("2020-12-02T21:11:00Z").toEpochMilli()).build());

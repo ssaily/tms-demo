@@ -53,6 +53,7 @@ class EnrichmentTests {
     protected TestOutputTopic<String, DigitrafficMessage> processedOutputTopic;
     protected TestInputTopic<String, DigitrafficMessage> processedInputTopic;
     protected TestInputTopic<String, GenericRecord> stationInputTopic;
+    protected TestInputTopic<String, GenericRecord> sensorInputTopic;
     protected TestOutputTopic<String, DigitrafficMessage> enrichedOutputTopic;
 
     private TopologyTestDriver testDriver;
@@ -89,18 +90,13 @@ class EnrichmentTests {
             stringSerde.serializer(),
             new JsonSerializer<>());
 
-        processedOutputTopic = testDriver.createOutputTopic(
-            "observations.weather.processed",
-            stringSerde.deserializer(),
-            digitrafficSerde.deserializer());
-
-        processedInputTopic = testDriver.createInputTopic(
-            "observations.weather.processed",
-            stringSerde.serializer(),
-            digitrafficSerde.serializer()); 
-
         stationInputTopic = testDriver.createInputTopic(
-            "tms-demo-pg.public.weather_stations",
+            "pg-stations.public.weather_stations",
+            stringSerde.serializer(),
+            stationSerde.serializer());
+
+        sensorInputTopic = testDriver.createInputTopic(
+            "pg-sensors.public.weather_sensors",
             stringSerde.serializer(),
             stationSerde.serializer());
 
@@ -120,32 +116,38 @@ class EnrichmentTests {
     public void shouldEnrichMunicipality() throws IOException, RestClientException  {
 
         Path resourceDirectory = Paths.get("src","test","resources");
-        String absolutePath = resourceDirectory.toFile().getAbsolutePath() + "/station.avsc";         
-        
-        Schema schema = new Schema.Parser().parse(new File(absolutePath));            
-        GenericRecord record = new GenericData.Record(schema);
-        record.put("roadstationid", 12016);
-        record.put("name", "somename");
-        record.put("municipality", "Kärsämäki");
-        record.put("province", "Pohjois-Pohjanmaa");
-        record.put("latitude", 64.006442);
-        record.put("longitude", 25.755648);
-        
-        stationInputTopic.pipeInput("12016", record);
+        String stationSchemaPath = resourceDirectory.toFile().getAbsolutePath() + "/station.avsc";
+        String sensorSchemaPath = resourceDirectory.toFile().getAbsolutePath() + "/sensor.avsc";        
+        Schema stationSchema = new Schema.Parser().parse(new File(stationSchemaPath));
+        Schema sensorSchema = new Schema.Parser().parse(new File(sensorSchemaPath));
 
-        processedInputTopic.pipeInput("12016", DigitrafficMessage.newBuilder()
-            .setId(132)
-            .setRoadStationId(12016)
-            .setName("KUITUVASTE_SUURI_1")
-            .setSensorValue(0.0f)
-            .setSensorUnit("###")
-            .setMeasuredTime(Instant.parse("2020-12-02T20:42:00Z").toEpochMilli()).build());
+        GenericRecord stationRecord = new GenericData.Record(stationSchema);
+        stationRecord.put("roadstationid", 12016);
+        stationRecord.put("name", "somename");
+        stationRecord.put("municipality", "Kärsämäki");
+        stationRecord.put("province", "Pohjois-Pohjanmaa");
+        stationRecord.put("latitude", 64.006442);
+        stationRecord.put("longitude", 25.755648);
+        
+        stationInputTopic.pipeInput("12016", stationRecord);
+
+        GenericRecord sensorRecord = new GenericData.Record(sensorSchema);
+        sensorRecord.put("sensorid", 132);
+        sensorRecord.put("name", "KUITUVASTE_SUURI_1");
+        sensorRecord.put("unit", "###");
+
+        sensorInputTopic.pipeInput("132", sensorRecord);
+
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode jsonObj = mapper.readTree("{\"value\": 0.0, \"time\": 1606941720, \"sensorId\": 132}");
+        logger.debug(jsonObj.asText());
+        rawInputTopic.pipeInput("12016", jsonObj);
 
         assertThat(enrichedOutputTopic.readKeyValue(), equalTo(new KeyValue<>("12016", 
             DigitrafficMessage.newBuilder()
-                .setId(132)
+                .setSensorId(132)
                 .setRoadStationId(12016)
-                .setName("KUITUVASTE_SUURI_1")
+                .setSensorName("KUITUVASTE_SUURI_1")
                 .setSensorValue(0.0f)
                 .setSensorUnit("###")
                 .setMunicipality("Kärsämäki")
@@ -154,7 +156,7 @@ class EnrichmentTests {
                 .setMeasuredTime(Instant.parse("2020-12-02T20:42:00Z").toEpochMilli()).build())));
         
     }    
-
+/* 
     @Test
     public void shouldGenerateAvro() throws IOException, RestClientException {
         ObjectMapper mapper = new ObjectMapper();
@@ -165,13 +167,13 @@ class EnrichmentTests {
 
         assertThat(processedOutputTopic.readKeyValue(), equalTo(new KeyValue<>("12016", 
             DigitrafficMessage.newBuilder()
-                .setId(132)
+                .setSensorId(132)
                 .setRoadStationId(12016)
-                .setName("KUITUVASTE_SUURI_1")
+                .setSensorName("KUITUVASTE_SUURI_1")
                 .setSensorValue(0.0f)
                 .setSensorUnit("###")
                 .setMeasuredTime(Instant.parse("2020-12-02T20:42:00Z").toEpochMilli()).build())));
         
     }
-
+*/
 }

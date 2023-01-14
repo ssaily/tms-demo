@@ -64,18 +64,18 @@ def subscribe(client: mqtt_client):
             json_message = json.loads(msg.payload.decode())
             topic = msg.topic.split("/")
             roadstation_id = topic[1]
-            sensor_id = topic[2]
-            json_message["roadStationId"] = int(roadstation_id)
+            sensor_id = topic[2]            
             json_message["sensorId"] = int(sensor_id)
                     
             producer.produce(topic=KAFKA_TOPIC, 
                 key=roadstation_id,
                 value=json.dumps(json_message))
+            producer.poll(0)
         
         except ValueError:
             print("Failed to decode message as JSON: {}".format(msg.payload.decode()))
         except:
-            print("Unknown error decoding topic: {} msg: {}".format(msg.topic.decode(), msg.payload.decode()))
+            print("Unknown error decoding topic: {} msg: {}".format(msg.topic, msg.payload.decode()))
       
     client.subscribe(MQTT_TOPICS)
     client.on_message = on_message
