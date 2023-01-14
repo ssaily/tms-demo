@@ -1,0 +1,42 @@
+{
+    "type": "record",
+    "name": "WeatherSensor",
+    "namespace": "fi.saily",
+    "connect.name": "pg_sensors.public.weather_sensors.Value",
+    "fields": [
+      {
+        "name": "sensorid",
+        "type": {
+          "connect.type": "int16",
+          "type": "int"
+        }
+      },
+      {
+        "default": null,
+        "name": "name",
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      {
+        "default": null,
+        "name": "unit",
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      {
+        "default": null,
+        "name": "accuracy",
+        "type": [
+          "null",
+          {
+            "connect.type": "int16",
+            "type": "int"
+          }
+        ]
+      }
+    ]
+}
