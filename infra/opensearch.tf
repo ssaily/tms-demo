@@ -17,7 +17,7 @@ resource "aiven_service_integration" "tms-demo-obs-os-integr" {
 }
 
 # Opensearch user
-resource "aiven_service_user" "os-user" {
+resource "aiven_opensearch_user" "os-user" {
   project = var.avn_project_id
   service_name = aiven_opensearch.tms-demo-os.service_name
   username = "test-user1"

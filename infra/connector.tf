@@ -13,7 +13,7 @@ data "aiven_service_component" "tms_pg" {
 }
 
 locals {
-  schema_registry_uri = "https://${data.aiven_service_user.kafka_admin.username}:${data.aiven_service_user.kafka_admin.password}@${data.aiven_service_component.schema_registry.host}:${data.aiven_service_component.schema_registry.port}"
+  schema_registry_uri = "https://${data.aiven_kafka_user.kafka_admin.username}:${data.aiven_kafka_user.kafka_admin.password}@${data.aiven_service_component.schema_registry.host}:${data.aiven_service_component.schema_registry.port}"
 }
 
 resource "aiven_kafka_connector" "kafka-pg-cdc-stations" {
@@ -21,7 +21,7 @@ resource "aiven_kafka_connector" "kafka-pg-cdc-stations" {
   service_name = aiven_kafka_connect.tms-demo-kafka-connect1.service_name
   connector_name = "kafka-pg-cdc-stations"
 
-  config = {  
+  config = {
     "_aiven.restart.on.failure": "true",
     "key.converter" : "org.apache.kafka.connect.storage.StringConverter",
     "key.converter.schemas.enable": "false",
@@ -35,8 +35,8 @@ resource "aiven_kafka_connector" "kafka-pg-cdc-stations" {
     "publication.name": "station_publication",
     "database.hostname": data.aiven_service_component.tms_pg.host,
     "database.port": data.aiven_service_component.tms_pg.port,
-    "database.user": data.aiven_service_user.pg_admin.username,
-    "database.password": data.aiven_service_user.pg_admin.password,
+    "database.user": data.aiven_pg_user.pg_admin.username,
+    "database.password": data.aiven_pg_user.pg_admin.password,
     "database.dbname": "defaultdb",
     "database.server.name": "pg-stations",
     "table.whitelist": "public.weather_stations",
@@ -61,7 +61,7 @@ resource "aiven_kafka_connector" "kafka-pg-cdc-stations-2" {
   service_name = aiven_kafka_connect.tms-demo-kafka-connect1.service_name
   connector_name = "kafka-pg-cdc-stations-2"
 
-  config = {  
+  config = {
     "_aiven.restart.on.failure": "true",
     "key.converter" : "io.confluent.connect.avro.AvroConverter",
     "key.converter.schema.registry.url": local.schema_registry_uri,
@@ -71,14 +71,14 @@ resource "aiven_kafka_connector" "kafka-pg-cdc-stations-2" {
     "value.converter.schema.registry.url": local.schema_registry_uri,
     "value.converter.basic.auth.credentials.source": "URL",
     "value.converter.schemas.enable": "true",
-    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",    
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
     "name": "kafka-pg-cdc-stations-2",
     "slot.name": "station2_repl_slot",
     "publication.name": "station_publication",
     "database.hostname": data.aiven_service_component.tms_pg.host,
     "database.port": data.aiven_service_component.tms_pg.port,
-    "database.user": data.aiven_service_user.pg_admin.username,
-    "database.password": data.aiven_service_user.pg_admin.password,
+    "database.user": data.aiven_pg_user.pg_admin.username,
+    "database.password": data.aiven_pg_user.pg_admin.password,
     "database.dbname": "defaultdb",
     "database.server.name": "pg-stations-2",
     "table.whitelist": "public.weather_stations_2",
@@ -100,7 +100,7 @@ resource "aiven_kafka_connector" "bq-sink" {
   project = var.avn_project_id
   service_name = aiven_kafka_connect.tms-demo-kafka-connect1.service_name
   connector_name = "bq-sink"
-  config = {  
+  config = {
     "_aiven.restart.on.failure": "true",
     "name": "bq-sink",
     "connector.class": "com.wepay.kafka.connect.bigquery.BigQuerySinkConnector",
@@ -116,7 +116,7 @@ resource "aiven_kafka_connector" "bq-sink" {
     "project": var.bq_project,
     "keySource": "JSON",
     "keyfile": var.bq_key,
-    "defaultDataset": "weather_stations",    
+    "defaultDataset": "weather_stations",
     "kafkaKeyFieldName": "kafkakey",
     "kafkaDataFieldName": "kafkavalue",
     "allowNewBigQueryFields": "true",
@@ -141,7 +141,7 @@ resource "aiven_kafka_connector" "kafka-pg-cdc-sensors" {
   service_name = aiven_kafka_connect.tms-demo-kafka-connect1.service_name
   connector_name = "kafka-pg-cdc-sensors"
 
-  config = {  
+  config = {
     "_aiven.restart.on.failure": "true",
     "key.converter" : "org.apache.kafka.connect.storage.StringConverter",
     "key.converter.schemas.enable": "false",
@@ -149,14 +149,14 @@ resource "aiven_kafka_connector" "kafka-pg-cdc-sensors" {
     "value.converter.schema.registry.url": local.schema_registry_uri,
     "value.converter.basic.auth.credentials.source": "URL",
     "value.converter.schemas.enable": "true",
-    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",    
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
     "name": "kafka-pg-cdc-sensors",
     "slot.name": "sensor_repl_slot",
     "publication.name": "station_publication",
     "database.hostname": data.aiven_service_component.tms_pg.host,
     "database.port": data.aiven_service_component.tms_pg.port,
-    "database.user": data.aiven_service_user.pg_admin.username,
-    "database.password": data.aiven_service_user.pg_admin.password,
+    "database.user": data.aiven_pg_user.pg_admin.username,
+    "database.password": data.aiven_pg_user.pg_admin.password,
     "database.dbname": "defaultdb",
     "database.server.name": "pg-sensors",
     "table.whitelist": "public.weather_sensors",
@@ -170,7 +170,7 @@ resource "aiven_kafka_connector" "kafka-pg-cdc-sensors" {
     "transforms.extractKey.type":"org.apache.kafka.connect.transforms.ExtractField$Key",
     "transforms.extractKey.field":"sensorid",
     "include.schema.changes": "false"
-  }  
+  }
   depends_on = [
     aiven_service_integration.tms-demo-connect-integr
   ]
@@ -179,7 +179,7 @@ resource "aiven_kafka_connector" "kafka-pg-cdc-sensors" {
 resource "aiven_kafka_connector" "kafka-redis-sink" {
   project = var.avn_project_id
   service_name = aiven_kafka_connect.tms-demo-kafka-connect2.service_name
-  connector_name = "kafka-redis-sink"  
+  connector_name = "kafka-redis-sink"
   config = {
     "name": "kafka-redis-sink",
     "_aiven.restart.on.failure": "true",
@@ -196,15 +196,15 @@ resource "aiven_kafka_connector" "kafka-redis-sink" {
     "connect.redis.password": aiven_redis.tms-demo-redis.service_password,
     "connect.redis.ssl.enabled": "true",
     "transforms": "extractTopic, insertField, resetTopic",
-    "transforms.extractTopic.type":"io.aiven.kafka.connect.transforms.ExtractTopic$Key",    
+    "transforms.extractTopic.type":"io.aiven.kafka.connect.transforms.ExtractTopic$Key",
     "transforms.insertField.type":"org.apache.kafka.connect.transforms.InsertField$Value",
     "transforms.insertField.topic.field":"rsid",
     "transforms.resetTopic.type": "org.apache.kafka.connect.transforms.RegexRouter",
     "transforms.resetTopic.regex": "(.*)"
-    "transforms.resetTopic.replacement": "${aiven_kafka_topic.observations-weather-municipality.topic_name}"    
+    "transforms.resetTopic.replacement": "${aiven_kafka_topic.observations-weather-municipality.topic_name}"
     "connect.redis.kcql": <<EOF
-      INSERT INTO cache- SELECT sensorName, sensorValue, sensorUnit, measuredTime 
-      FROM ${aiven_kafka_topic.observations-weather-municipality.topic_name} 
+      INSERT INTO cache- SELECT sensorName, sensorValue, sensorUnit, measuredTime
+      FROM ${aiven_kafka_topic.observations-weather-municipality.topic_name}
       PK rsid,sensorId
       EOF
   }

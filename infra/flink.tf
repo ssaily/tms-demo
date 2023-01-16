@@ -31,13 +31,10 @@ resource "aiven_flink_table" "source" {
   kafka_key_fields = ["roadStationId"]
   schema_sql     = <<EOF
     `roadStationId` INT,
-    `id` INT,
-    `name` VARCHAR,
-    `sensorValue` FLOAT,
-    `measuredTime` VARCHAR,    
-    `measuredTimeTs` AS TO_TIMESTAMP(REPLACE(TRIM(TRAILING 'Z' FROM measuredTime), 'T', ' ')),
-    `sensorUnit` VARCHAR,
-    WATERMARK FOR `measuredTimeTs` AS `measuredTimeTs` - INTERVAL '50' SECOND
+    `sensorId` INT,
+    `value` FLOAT,
+    `time` TIMESTAMP,
+    WATERMARK FOR `time` AS `time` - INTERVAL '50' SECOND
   EOF
 }
 
@@ -51,12 +48,9 @@ resource "aiven_flink_table" "sink" {
   kafka_key_fields = ["roadStationId"]
   schema_sql     = <<EOF
     `roadStationId` INT,
-    `id` INT,
-    `name` VARCHAR,
-    `sensorValue` FLOAT,
-    `measuredTime` VARCHAR,    
-    `measuredTimeTs` TIMESTAMP,
-    `sensorUnit` VARCHAR
+    `sensorId` INT,
+    `value` FLOAT,
+    `time` TIMESTAMP
   EOF
 }
 
@@ -71,13 +65,11 @@ resource "aiven_flink_table" "avg_sink" {
   kafka_value_format = "avro"
   schema_sql     = <<EOF
     `roadStationId` INT,
-    `id` INT,
-    `name` VARCHAR,
+    `sensorId` INT,
     `avgValue` FLOAT,
     `msgCount` BIGINT,
     `windowStart` TIMESTAMP(2),
-    `windowEnd` TIMESTAMP(2),
-    `sensorUnit` VARCHAR
+    `windowEnd` TIMESTAMP(2)
   EOF
 }
 
@@ -92,7 +84,7 @@ resource "aiven_flink_job" "filter_job" {
   statement = <<EOF
     INSERT INTO ${aiven_flink_table.sink.table_name}
     SELECT * FROM ${aiven_flink_table.source.table_name}
-    WHERE `name` = 'ILMA'
+    WHERE `sensorId` = 1
   EOF
 }
 
@@ -106,9 +98,9 @@ resource "aiven_flink_job" "avg_job" {
   ]
   statement = <<EOF
     INSERT INTO ${aiven_flink_table.avg_sink.table_name}
-    SELECT roadStationId, id, name, AVG(sensorValue) as avgValue, COUNT(*) msgCount, window_start, window_end, sensorUnit
+    SELECT roadStationId, sensorId, AVG(value) as avgValue, COUNT(*) msgCount, window_start, window_end
     FROM TABLE( TUMBLE(TABLE ${aiven_flink_table.source.table_name},
-      DESCRIPTOR(measuredTimeTs), INTERVAL '15' MINUTES))
-    GROUP BY window_start, window_end, GROUPING SETS ((roadStationId, id, name, sensorUnit))    
+      DESCRIPTOR(time), INTERVAL '15' MINUTES))
+    GROUP BY window_start, window_end, GROUPING SETS ((roadStationId, sensorId))
   EOF
 }
