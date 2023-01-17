@@ -2,7 +2,7 @@
     "name": "DigitrafficMessage",
     "namespace": "fi.saily.tmsdemo",
     "type": "record",
-    "fields" : [        
+    "fields" : [
         {
             "name": "roadStationId",
             "type": "int"
@@ -22,7 +22,7 @@
         {
             "name": "sensorValue",
             "type": "double"
-        },        
+        },
         {
             "name": "sensorUnit",
             "type": [
@@ -33,7 +33,8 @@
         },
         {
             "name": "measuredTime",
-            "type": "long"
+            "type": "long",
+            "connect.name": "org.apache.kafka.connect.data.Timestamp"
         },
         {
             "name": "municipality",

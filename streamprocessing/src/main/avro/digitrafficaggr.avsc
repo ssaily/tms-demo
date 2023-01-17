@@ -21,7 +21,8 @@
         },
         {
             "name": "measuredTime",
-            "type": "long"
+            "type": "long",
+            "connect.name": "org.apache.kafka.connect.data.Timestamp"
         }
     ]
 }

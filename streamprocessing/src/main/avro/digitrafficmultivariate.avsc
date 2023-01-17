@@ -2,18 +2,19 @@
     "name": "DigitrafficMessageMV",
     "namespace": "fi.saily.tmsdemo",
     "type": "record",
-    "fields" : [        
+    "fields" : [
         {
             "name": "roadStationId",
             "type": "int"
         },
         {
             "name": "measuredTime",
-            "type": "long"
+            "type": "long",
+            "connect.name": "org.apache.kafka.connect.data.Timestamp"
         },
         {
             "name": "municipality",
-            "type": "string"         
+            "type": "string"
         },
         {
             "name": "province",
