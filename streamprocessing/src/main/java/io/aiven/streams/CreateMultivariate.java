@@ -27,7 +27,7 @@ import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 @Component
 @Profile("multivariate")
 public class CreateMultivariate {
-    private static Logger logger = LoggerFactory.getLogger(CalculationsTopology.class);
+    private static Logger logger = LoggerFactory.getLogger(CreateMultivariate.class);
 
     private CreateMultivariate() {
         /*
