@@ -6,7 +6,7 @@ Prerequisite
 - Terraform (https://learn.hashicorp.com/tutorials/terraform/install-cli)
 - k8s cluster and kubectl command line tool
 - jq command line tool (https://stedolan.github.io/jq/download/)
-- kafkacat tool (https://github.com/edenhill/kafkacat)
+- kcat tool (https://github.com/edenhill/kcat)
 
 ## Infrastructure
 ```
