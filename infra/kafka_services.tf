@@ -11,10 +11,14 @@ resource "aiven_kafka" "tms-demo-kafka" {
 
   kafka_user_config {
     // Enables Kafka Schemas
-    schema_registry = true    
+    schema_registry = true
     kafka {
       group_max_session_timeout_ms = 70000
       log_retention_bytes = 1000000000
+    }
+    kafka_authentication_methods {
+      certificate = true
+      sasl = true
     }
   }
 }
@@ -58,7 +62,7 @@ resource "aiven_kafka_connect" "tms-demo-kafka-connect2" {
     public_access {
       kafka_connect = true
     }
-  }  
+  }
 }
 
 
@@ -76,7 +80,7 @@ resource "aiven_service_integration" "tms-demo-connect-integr" {
       offset_storage_topic = "__connect_1_offsets"
       config_storage_topic = "__connect_1_configs"
     }
-  }  
+  }
 }
 
 // Kafka connect service integration
@@ -102,4 +106,3 @@ resource "aiven_service_integration" "tms-demo-obs-kafka-integr" {
   source_service_name = aiven_kafka.tms-demo-kafka.service_name
   destination_service_name = aiven_m3db.tms-demo-obs-m3db.service_name
 }
-

@@ -44,24 +44,25 @@ FROM aiven_extras.pg_create_publication_for_all_tables(
 cd k8s
 ````
 
+### KEDA Autoscaling
+https://keda.sh/
+
+https://keda.sh/docs/2.9/deploy/
+```
+helm repo add kedacore https://kedacore.github.io/charts
+helm repo update
+helm install keda kedacore/keda --namespace keda
+```
+
 ### Namespace
 ```
 kubectl create -f namespace.yaml
 ```
 
-### Secrets
+### Deploy with Kustomize
 ```
-./create-k8s-secrets.sh
+kubectl apply -k .
 ```
 
 ### Deploy observability (Optional)
 Follow instructions [here](observability/README.md)
-
-### Deployments
-```
-kubectl create -f deploy-ingest.yaml
-kubectl create -f deploy-processing.yaml
-kubectl create -f deploy-sink.yaml
-kubectl create -f ksqldb.yaml
-```
-

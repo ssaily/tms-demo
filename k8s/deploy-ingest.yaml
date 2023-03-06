@@ -15,7 +15,7 @@ spec:
       labels:
         app: tms-demo-ingest
     spec:
-      containers:      
+      containers:
       - name: tms-demo-ingest
         image: ssaily/tms-demo-ingest:0.2.1
         securityContext:
@@ -31,7 +31,7 @@ spec:
           - name: MQTT_HOST
             value: tie.digitraffic.fi
           - name: MQTT_PORT
-            value: "61619"
+            value: "443"
           - name: MQTT_TOPICS
             value: "weather-v2/+/+"
           - name: MSG_KEY
@@ -40,8 +40,8 @@ spec:
             value: observations.weather.raw
           - name: PYTHONUNBUFFERED
             value: "1"
-        envFrom:          
-          - secretRef: 
+        envFrom:
+          - secretRef:
               name: tms-service-endpoint
         volumeMounts:
         - mountPath: /etc/streams/tms-ingest-cert

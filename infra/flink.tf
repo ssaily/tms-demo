@@ -20,6 +20,8 @@ resource "aiven_service_integration" "flink_to_kafka" {
   source_service_name      = aiven_kafka.tms-demo-kafka.service_name
 }
 
+/*
+
 resource "aiven_flink_table" "source" {
   project        = aiven_flink.flink.project
   service_name   = aiven_flink.flink.service_name
@@ -104,3 +106,4 @@ resource "aiven_flink_job" "avg_job" {
     GROUP BY window_start, window_end, GROUPING SETS ((roadStationId, sensorId))
   EOF
 }
+*/

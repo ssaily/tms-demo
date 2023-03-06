@@ -23,6 +23,8 @@ M3_CREDENTIALS=$(jq -r '.users[] | select(.type == "primary") |"\(.username):\(.
 SCHEMA_REGISTRY_HOST=$(jq -r '.components[] | select(.component == "schema_registry") |"\(.host):\(.port)"' <<< $KAFKA_JSON)
 SCHEMA_REGISTRY_URI=$(jq -r .connection_info.schema_registry_uri <<< $KAFKA_JSON)
 KAFKA_SERVICE_URI=$(jq -r .service_uri <<< $KAFKA_JSON)
+KAFKA_SASL_URI=$(jq -r '.components[] | select(.component == "kafka" and .kafka_authentication_method == "sasl") |"\(.host):\(.port)"' <<< $KAFKA_JSON)
+KAFKA_SASL_PWD=$(jq -r '.users[] | select(.username == "tms-processing-user")|"\(.password)"' <<< $KAFKA_JSON)
 
 OS_HOST=$(jq -r '(.service_uri_params.host)' <<< $OS_JSON)
 OS_PORT=$(jq -r '(.service_uri_params.port)' <<< $OS_JSON)
@@ -30,17 +32,19 @@ OS_USER=$(jq -r '(.service_uri_params.user)' <<< $OS_JSON)
 OS_PASSWORD=$(jq -r '(.service_uri_params.password)' <<< $OS_JSON)
 
 
-echo $SCHEMA_REGISTRY_URI > k8s/secrets/aiven/schema_registry_uri
-echo $M3_INFLUXDB_URI > k8s/secrets/aiven/m3_influxdb_uri
-echo $M3_CREDENTIALS > k8s/secrets/aiven/m3_credentials
+echo "SCHEMA_REGISTRY=$SCHEMA_REGISTRY_URI" > k8s/secrets/aiven/.env
+echo "M3_INFLUXDB_URL=$M3_INFLUXDB_URI" >> k8s/secrets/aiven/.env
+echo "M3_INFLUXDB_CREDENTIALS=$M3_CREDENTIALS" >> k8s/secrets/aiven/.env
 echo $M3_PROM_USER > k8s/secrets/aiven/m3_prom_user
 echo $M3_PROM_PWD > k8s/secrets/aiven/m3_prom_pwd
 echo $M3_PROM_URI > k8s/secrets/aiven/m3_prom_uri
-echo $KAFKA_SERVICE_URI > k8s/secrets/aiven/kafka_service_uri
-echo $OS_HOST > k8s/secrets/aiven/os_host
-echo $OS_PORT > k8s/secrets/aiven/os_port
-echo $OS_USER > k8s/secrets/aiven/os_user
-echo $OS_PASSWORD > k8s/secrets/aiven/os_password
+echo "BOOTSTRAP_SERVERS=$KAFKA_SERVICE_URI" >> k8s/secrets/aiven/.env
+echo "OPENSEARCH_HOST=$OS_HOST" >> k8s/secrets/aiven/.env
+echo "OPENSEARCH_PORT=$OS_PORT" >> k8s/secrets/aiven/.env
+echo "OPENSEARCH_USER=$OS_USER" >> k8s/secrets/aiven/.env
+echo "OPENSEARCH_PASSWORD=$OS_PASSWORD" >> k8s/secrets/aiven/.env
+echo "SASL_BOOTSTRAP_SERVERS=$KAFKA_SASL_URI" >> k8s/secrets/aiven/.env
+echo "SASL_PWD=$KAFKA_SASL_PWD" >> k8s/secrets/aiven/.env
 
 echo "Generate truststore for Schema Registry CA (${SCHEMA_REGISTRY_HOST})"
 openssl s_client -connect $SCHEMA_REGISTRY_HOST -showcerts < /dev/null 2>/dev/null | awk '/BEGIN CERT/{s=1}; s{t=t "\n" $0}; /END CERT/ {last=t; t=""; s=0}; END{print last}' > k8s/secrets/aiven/sr-ca.cert
