@@ -15,16 +15,16 @@ spec:
       labels:
         app: tms-demo-sink
     spec:
-      containers:      
+      containers:
       - name: tms-demo-sink
-        image: ssaily/tms-demo-sink:0.1.3
-        env:          
+        image: ssaily/tms-demo-sink:0.2.0
+        env:
           - name: PYTHONUNBUFFERED
             value: "1"
         envFrom:
           - secretRef:
-              name: kafka-secrets        
-          - secretRef: 
+              name: kafka-secrets
+          - secretRef:
               name: tms-service-endpoint
         volumeMounts:
         - mountPath: /etc/streams/tms-sink-cert

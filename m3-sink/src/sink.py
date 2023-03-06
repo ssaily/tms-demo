@@ -36,16 +36,16 @@ deserialize_avro = avro_serde.decode_message
 def get_name_or_default(name):
     if not name:
         return str("-")
-    else:        
+    else:
         name = unicodedata.normalize('NFD', name)
         name = name.encode('ascii', 'ignore').decode('ascii')
         name = name.replace(" ", "_")
     return name
 
 def to_buffer(buffer: list, message):
-    try:                    
-        deserialized_message = deserialize_avro(message=message.value(), is_key=False)        
-    except Exception as e:                    
+    try:
+        deserialized_message = deserialize_avro(message=message.value(), is_key=False)
+    except Exception as e:
         print(f"Failed deserialize avro payload: {message.value()}\n{e}")
     else:
         values = []
@@ -60,12 +60,12 @@ def to_buffer(buffer: list, message):
             values_str = ','.join(values)
         else:
             measurement_name = 'observations'
-            sensor_name_str = get_name_or_default(deserialized_message["name"])
+            sensor_name_str = get_name_or_default(deserialized_message["sensorName"])
             values_str = f'sensorValue={deserialized_message["sensorValue"]}'
 
-        buffer.append("{measurement},service=m3-sink,roadStationId={road_station_id},municipality={municipality},province={province},geohash={geohash},name={sensor_name} {sensor_values} {timestamp}"                    
+        buffer.append("{measurement},service=m3-sink,roadStationId={road_station_id},municipality={municipality},province={province},geohash={geohash},name={sensor_name} {sensor_values} {timestamp}"
             .format(measurement=measurement_name,
-                    road_station_id=deserialized_message["roadStationId"],                    
+                    road_station_id=deserialized_message["roadStationId"],
                     municipality=get_name_or_default(deserialized_message["municipality"]),
                     province=get_name_or_default(deserialized_message["province"]),
                     geohash=deserialized_message["geohash"],
@@ -75,23 +75,23 @@ def to_buffer(buffer: list, message):
 
 def flush_buffer(buffer: list):
     print(f"Flushing {len(buffer)} records to M3")
-    payload = str("\n".join(buffer))    
-    response = requests.post(influxdb_client, data=payload, 
-    auth=(influxdb_cred.split(":")[0],influxdb_cred.split(":")[1]), 
+    payload = str("\n".join(buffer))
+    response = requests.post(influxdb_client, data=payload,
+    auth=(influxdb_cred.split(":")[0],influxdb_cred.split(":")[1]),
     headers={'Content-Type': 'application/x-www-form-urlencoded'})
     if response.status_code == 400:
         print(f"{response.text} Skipping too old records")
         buffer.clear()
         return True
-    if response.status_code != 204:        
+    if response.status_code != 204:
         print(f"Failed to store to M3 {response.status_code}\n{response.text}")
         return False
-    
+
     buffer.clear()
     return True
 
-def consume_record(lines: list):    
-    consumer = Consumer(consumer_config)    
+def consume_record(lines: list):
+    consumer = Consumer(consumer_config)
     consumer.subscribe(["observations.weather.multivariate", "observations.weather.municipality"])
 
     while True:
@@ -103,7 +103,7 @@ def consume_record(lines: list):
         else:
             if message:
                 to_buffer(lines, message)
-                                   
+
                 if (len(lines) > 1000 and flush_buffer(lines) == True):
                     consumer.commit()
 
@@ -111,4 +111,3 @@ if __name__ == "__main__":
     start_http_server(9091)
     lines = []
     consume_record(lines)
-    
