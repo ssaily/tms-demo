@@ -18,10 +18,6 @@ local kp =
       prometheus+:: {
         prometheus+: {
           spec+: {
-            additionalScrapeConfigs: {
-              'name': 'additional-scrape-configs',
-              'key': 'prometheus-additional.yaml'
-            },
             remoteWrite: [{
               'url': 'http://highlander:9092/api/v1/prom/remote/write'
             },
