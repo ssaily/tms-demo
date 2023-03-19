@@ -10,7 +10,8 @@ rules:
       clientId: "$2"
     help: "Kafka $1 JMX metric start time seconds"
     type: GAUGE
-    valueFactor: 0.001 
+    valueFactor: 0.001
+    cache: true
   - pattern: 'kafka.(.+)<type=app-info, client-id=(.+)><>(commit-id|version): (.+)'
     name: kafka_$1_$3_info
     value: 1
@@ -19,10 +20,11 @@ rules:
       $3: "$4"
     help: "Kafka $1 JMX metric info version and commit-id"
     type: GAUGE
+    cache: true
 
   #kafka.producer:type=producer-topic-metrics,client-id="{clientid}",topic="{topic}"", partition="{partition}"
   #kafka.consumer:type=consumer-fetch-manager-metrics,client-id="{clientid}",topic="{topic}"", partition="{partition}"
-  - pattern: kafka.(.+)<type=(.+)-metrics, client-id=(.+), topic=(.+), partition=(.+)><>(.+-total|compression-rate|.+-avg|.+-replica|.+-lag|.+-lead)
+  - pattern: kafka.(.+)<type=(.+)-metrics, client-id=(.+), topic=(.+), partition=(.+)><>(.+-total|compression-rate|.+-avg|.+-max|.+-replica|.+-lag|.+-lead)
     name: kafka_$2_$6
     labels:
       clientId: "$3"
@@ -30,6 +32,7 @@ rules:
       partition: "$5"
     help: "Kafka $1 JMX metric type $2"
     type: GAUGE
+    cache: true
 
   #kafka.producer:type=producer-topic-metrics,client-id="{clientid}",topic="{topic}"
   #kafka.consumer:type=consumer-fetch-manager-metrics,client-id="{clientid}",topic="{topic}"", partition="{partition}"
@@ -40,6 +43,7 @@ rules:
       topic: "$4"
     help: "Kafka $1 JMX metric type $2"
     type: GAUGE
+    cache: true
 
   #kafka.connect:type=connect-node-metrics,client-id="{clientid}",node-id="{nodeid}"
   #kafka.consumer:type=consumer-node-metrics,client-id=consumer-1,node-id="{nodeid}"
@@ -50,6 +54,7 @@ rules:
       nodeId: "$4"
     help: "Kafka $1 JMX metric type $2"
     type: UNTYPED
+    cache: true
 
   #kafka.connect:type=kafka-metrics-count,client-id="{clientid}"
   #kafka.consumer:type=consumer-fetch-manager-metrics,client-id="{clientid}"
@@ -61,6 +66,7 @@ rules:
       clientId: "$3"
     help: "Kafka $1 JMX metric type $2"
     type: GAUGE
+    cache: true
 
   #kafka.connect:type=connector-task-metrics,connector="{connector}",task="{task}<> status"
   - pattern: 'kafka.connect<type=connector-task-metrics, connector=(.+), task=(.+)><>status: ([a-z-]+)'
@@ -72,6 +78,7 @@ rules:
       status: "$3"
     help: "Kafka Connect JMX Connector status"
     type: GAUGE
+    cache: true
 
   #kafka.connect:type=task-error-metrics,connector="{connector}",task="{task}"
   #kafka.connect:type=source-task-metrics,connector="{connector}",task="{task}"
@@ -84,6 +91,7 @@ rules:
       task: "$3"
     help: "Kafka Connect JMX metric type $1"
     type: GAUGE
+    cache: true
 
   #kafka.connect:type=connector-metrics,connector="{connector}"
   #kafka.connect:type=connect-worker-metrics,connector="{connector}"
@@ -93,16 +101,18 @@ rules:
       connector: "$1"
     help: "Kafka Connect JMX metric $1"
     type: GAUGE
+    cache: true
 
   #kafka.connect:type=connect-worker-metrics
   - pattern: kafka.connect<type=connect-worker-metrics><>([a-z-]+)
     name: kafka_connect_worker_$1
     help: "Kafka Connect JMX metric worker"
     type: GAUGE
+    cache: true
 
   #kafka.connect:type=connect-worker-rebalance-metrics
   - pattern: kafka.connect<type=connect-worker-rebalance-metrics><>([a-z-]+)
     name: kafka_connect_worker_rebalance_$1
     help: "Kafka Connect JMX metric rebalance information"
     type: GAUGE
-
+    cache: true

@@ -45,7 +45,9 @@ public class KafkaStreamsConfig {
 
         // producer config
         props.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "gzip");
-        props.put(ProducerConfig.RETRIES_CONFIG, "3");
+        props.put(ProducerConfig.LINGER_MS_CONFIG, 5000);
+        props.put(ProducerConfig.BATCH_SIZE_CONFIG, 1 * 1024 * 1024);
+
         // others
         props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, JsonNode.class);
 

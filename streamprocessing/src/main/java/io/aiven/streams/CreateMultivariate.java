@@ -55,7 +55,7 @@ public class CreateMultivariate {
             Consumed.with(Serdes.String(), valueSerde).withTimestampExtractor(new ObservationTimestampExtractor()))
         .filter((k, v) -> v.getSensorName() != null)
         .groupByKey(groupedMessage)
-        .windowedBy(SessionWindows.with(Duration.ofMinutes(1)).grace(Duration.ofMinutes(15)))
+        .windowedBy(SessionWindows.ofInactivityGapAndGrace(Duration.ofMinutes(1), Duration.ofMinutes(15)))
         .aggregate(
             () -> new DigitrafficMessageMV(-1, 0L, "", "", "", new HashMap<>()) , /* initializer */
             (aggKey, newValue, aggValue) -> {
