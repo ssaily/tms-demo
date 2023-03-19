@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: tms-demo-ingest
-        image: ssaily/tms-demo-ingest:0.2.1
+        image: ssaily/tms-demo-ingest:0.2.2
         securityContext:
           seccompProfile:
             type: Unconfined
