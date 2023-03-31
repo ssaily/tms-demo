@@ -9,6 +9,7 @@ resources:
 - deploy-processing.yaml
 - deploy-sink.yaml
 - keda-scaler.yaml
+- klaw.yaml
 secretGenerator:
 - name: tms-ingest-cert
   namespace: tms-demo
@@ -34,7 +35,31 @@ secretGenerator:
   - secrets/aiven/sink/ca.pem
   - secrets/aiven/sink/client.keystore.p12
   - secrets/aiven/sink/client.truststore.jks
+- name: tms-admin-cert
+  namespace: tms-demo
+  files:
+  - secrets/aiven/admin/service.cert
+  - secrets/aiven/admin/service.key
+  - secrets/aiven/admin/ca.pem
+  - secrets/aiven/admin/client.keystore.p12
+  - secrets/aiven/admin/client.truststore.jks
 - name: tms-service-endpoint
   namespace: tms-demo
   envs:
   - secrets/aiven/.env
+- name: klaw-secrets
+  namespace: tms-demo
+  envs:
+  - secrets/aiven/.klaw.env
+  literals:
+    - KLAW_CLUSTERAPI_ACCESS_BASE64_SECRET="dGhpcyBpcyBhIHNlY3JldCB0byBhY2Nlc3MgY2x1c3RlcmFwaQ=="
+    - SPRING_DATASOURCE_URL="jdbc:h2:file:/klaw/klawprodb;DB_CLOSE_ON_EXIT=FALSE;DB_CLOSE_DELAY=-1;MODE=MySQL;CASE_INSENSITIVE_IDENTIFIERS=TRUE;"
+    - KLAW_CORAL_ENABLED="true"
+    - DEV1_KAFKASSL_PROTOCOL="TLS"
+    - DEV1_KAFKASSL_KEYSTORE_LOCATION="/klaw/kafka/client.keystore.p12"
+    - DEV1_KAFKASSL_KEYSTORE_PWD="supersecret"
+    - DEV1_KAFKASSL_KEY_PWD="supersecret"
+    - DEV1_KAFKASSL_KEYSTORE_TYPE="pkcs12"
+    - DEV1_KAFKASSL_TRUSTSTORE_LOCATION="/klaw/kafka/client.truststore.jks"
+    - DEV1_KAFKASSL_TRUSTSTORE_PWD="supersecret"
+    - DEV1_KAFKASSL_TRUSTSTORE_TYPE="JKS"

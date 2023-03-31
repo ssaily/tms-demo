@@ -1,0 +1,133 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: klaw
+  namespace: tms-demo
+  labels:
+    app: klaw
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: klaw
+  serviceName: "klaw"
+  template:
+    metadata:
+      labels:
+        app: klaw
+    spec:
+      containers:
+      - name: klaw-cluster-api
+        image: aivenoy/klaw-cluster-api:latest
+        envFrom:
+          - secretRef:
+              name: klaw-secrets
+        volumeMounts:
+        - mountPath: /klaw
+          name: klaw-data
+        - mountPath: /klaw/kafka
+          name: tms-admin-cert-volume
+        resources:
+          limits:
+            memory: 1024Mi
+            cpu: "2"
+          requests:
+            memory: 512Mi
+            cpu: "1"
+        imagePullPolicy: Always
+      - name: klaw-core
+        image: aivenoy/klaw-core:latest
+        ports:
+          - name: service-port
+            containerPort: 9097
+        livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /assets/images/klaw_logo_dark.png
+              port: 9097
+              scheme: HTTP
+            initialDelaySeconds: 60
+            periodSeconds: 60
+            successThreshold: 1
+            timeoutSeconds: 10
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /assets/images/klaw_logo_dark.png
+            port: 9097
+            scheme: HTTP
+          initialDelaySeconds: 60
+          periodSeconds: 60
+          successThreshold: 1
+          timeoutSeconds: 10
+        envFrom:
+          - secretRef:
+              name: klaw-secrets
+        volumeMounts:
+        - mountPath: /klaw
+          name: klaw-data
+        - mountPath: /klaw/kafka
+          name: tms-admin-cert-volume
+        resources:
+          limits:
+            memory: 1024Mi
+            cpu: "2"
+          requests:
+            memory: 512Mi
+            cpu: "1"
+        imagePullPolicy: Always
+      volumes:
+        - name: tms-admin-cert-volume
+          secret:
+            secretName: tms-admin-cert
+            items:
+            - key: client.keystore.p12
+              path: client.keystore.p12
+            - key: client.truststore.jks
+              path: client.truststore.jks
+  volumeClaimTemplates:
+  - metadata:
+      name: klaw-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "standard"
+      resources:
+        requests:
+          storage: 100Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: klaw-service
+  namespace: tms-demo
+  labels:
+    app: klaw
+spec:
+  ports:
+    - name: klaw-core
+      port: 9097
+      targetPort: 9097
+      protocol: TCP
+    - name: klaw-cluster-api
+      port: 9343
+      targetPort: 9343
+      protocol: TCP
+  selector:
+    app: klaw
+  type: NodePort
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-klaw
+  namespace: tms-demo
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: ssaily-sa-demo
+    networking.gke.io/managed-certificates: managed-cert
+    kubernetes.io/ingress.class: "gce"
+spec:
+  defaultBackend:
+    service:
+      name: klaw-service
+      port:
+        number: 9097
