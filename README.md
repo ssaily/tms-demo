@@ -10,7 +10,7 @@ Prerequisite
 
 ## Infrastructure
 ```
-cd infra
+cd <project-root>/infra
 terraform apply
 ````
 
@@ -23,7 +23,7 @@ terraform apply
 
 ### Import weather station metadata
 ```
-cd database
+cd <project-root>/database
 ./import-stations.sh
 ```
 
@@ -41,7 +41,7 @@ FROM aiven_extras.pg_create_publication_for_all_tables(
 
 ## Create k8s resources
 ````
-cd k8s
+cd <project-root>/k8s
 ````
 
 ### KEDA Autoscaling
@@ -62,6 +62,12 @@ kubectl create -f namespace.yaml
 ### Deploy with Kustomize
 ```
 kubectl apply -k .
+```
+
+### Deploy Flink Application
+```
+cd <project-root>/streamprocessing/flink
+./deploy.sh <aiven-project-name>
 ```
 
 ### Deploy observability (Optional)

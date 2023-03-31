@@ -17,6 +17,8 @@ observability/prometheus/manifests
 observability/prometheus/vendor
 observability/prometheus/jsonnetfile.*
 
+**/.java-version
+
 **/.ipynb_checkpoints
 **/.python-version
 

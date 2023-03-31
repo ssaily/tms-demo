@@ -1,0 +1,5 @@
+{
+    "parallelism": 6,
+    "restart_enabled": true,
+    "version_id": "${VERSION_ID}"
+}
