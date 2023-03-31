@@ -9,6 +9,7 @@ spec:
       app: tms-demo-enrichment
   endpoints:
   - interval: 10s
+    scrapeTimeout: 10s
     port: metrics
 ---
 apiVersion: monitoring.coreos.com/v1
@@ -22,6 +23,7 @@ spec:
       app: tms-demo-calculations
   endpoints:
   - interval: 10s
+    scrapeTimeout: 10s
     port: metrics
 ---
 apiVersion: monitoring.coreos.com/v1
@@ -35,6 +37,7 @@ spec:
       app: tms-demo-multivariate
   endpoints:
   - interval: 10s
+    scrapeTimeout: 10s
     port: metrics
 ---
 apiVersion: monitoring.coreos.com/v1
