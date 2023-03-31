@@ -40,7 +40,7 @@ spec:
   scaleTargetRef:
     name: tms-demo-enrichment
   cooldownPeriod: 30
-  minReplicaCount: 0
+  minReplicaCount: 1
   maxReplicaCount:  10
   advanced:
     horizontalPodAutoscalerConfig:
@@ -71,7 +71,7 @@ spec:
   scaleTargetRef:
     name: tms-demo-calculations
   cooldownPeriod: 30
-  minReplicaCount: 0
+  minReplicaCount: 1
   maxReplicaCount:  10
   advanced:
     horizontalPodAutoscalerConfig:
@@ -102,7 +102,7 @@ spec:
   scaleTargetRef:
     name: tms-demo-multivariate
   cooldownPeriod: 300
-  minReplicaCount: 0
+  minReplicaCount: 1
   maxReplicaCount:  10
   advanced:
     horizontalPodAutoscalerConfig:
