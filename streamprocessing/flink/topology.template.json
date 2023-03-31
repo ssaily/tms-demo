@@ -1,18 +1,15 @@
 {
     "sources": [
         {
-            "create_table":
-            "create table observations_source (\n            k_roadStationId VARCHAR,\n            roadStationId INT,\n            sensorId INT,\n            sensorName VARCHAR,\n            sensorValue DOUBLE,\n            sensorUnit VARCHAR,\n            measuredTime TIMESTAMP(3),\n            municipality VARCHAR,    \n            WATERMARK FOR measuredTime AS measuredTime - INTERVAL '60' SECOND\n        ) WITH (\n            'connector' = 'kafka',\n            'properties.bootstrap.servers' = '',\n            'scan.startup.mode' = 'earliest-offset',\n            'topic' = 'observations.weather.municipality',\n            'key.format' = 'raw',\n            'key.fields-prefix' = 'k_',\n            'key.fields' = 'k_roadStationId',\n            'value.format' = 'avro-confluent',\n            'value.fields-include' = 'EXCEPT_KEY',\n            'value.avro-confluent.url' = '${SCHEMA_REGISTRY_URL}',\n            'value.avro-confluent.basic-auth.credentials-source' = 'USER_INFO',\n            'value.avro-confluent.basic-auth.user-info' = '${SCHEMA_REGISTRY_CREDENTIALS}')",
+            "create_table": "",
             "integration_id": "${INTEGRATION_ID}"
         }
     ],
     "sinks": [
         {
-            "create_table":
-            "create table observations_sink (\n                roadStationId INT,\n                sensorId INT,\n                sensorName VARCHAR,\n                sensorValueAvg DOUBLE,\n                sensorValueMin DOUBLE,\n                sensorValueMax DOUBLE,\n                sensorValueCount BIGINT,\n                sensorUnit VARCHAR,    \n                municipality VARCHAR,\n                windowStart TIMESTAMP(2),\n                windowEnd TIMESTAMP(2),\n                PRIMARY KEY (roadStationId, sensorId, windowStart) NOT ENFORCED\n            ) WITH (\n                'connector' = 'upsert-kafka',\n                'properties.bootstrap.servers' = '',\n                'topic' = 'observations.weather.flink-avg-avro',\n                'value.format' = 'avro-confluent',\n                'value.avro-confluent.url' = '${SCHEMA_REGISTRY_URL}',\n                'value.avro-confluent.basic-auth.credentials-source' = 'USER_INFO',\n                'value.avro-confluent.basic-auth.user-info' = '${SCHEMA_REGISTRY_CREDENTIALS}',\n                'key.format' = 'avro-confluent',\n                'key.avro-confluent.url' = '${SCHEMA_REGISTRY_URL}',\n                'key.avro-confluent.basic-auth.credentials-source' = 'USER_INFO',\n                'key.avro-confluent.basic-auth.user-info' = '${SCHEMA_REGISTRY_CREDENTIALS}')",
+            "create_table": "",
             "integration_id": "${INTEGRATION_ID}"
         }
     ],
-    "statement":
-    "insert into observations_sink \n    SELECT roadStationId, sensorId, sensorName,\n         AVG(sensorValue) as sensorValueAvg,\n         MIN(sensorValue) as sensorValueMin,\n         MAX(sensorValue) as sensorValueMax,\n         COUNT(*) as sensorValueCount,\n         sensorUnit, municipality, window_start as windowStart, max(measuredTime) as windowEnd\n         FROM TABLE( TUMBLE(TABLE observations_source,\n           DESCRIPTOR(measuredTime), INTERVAL '1' HOUR))\n         GROUP BY window_start,\n         GROUPING SETS ((roadStationId, sensorId, sensorName, sensorUnit, municipality))"
+    "statement": ""
 }
