@@ -17,22 +17,6 @@ resource "aiven_kafka_topic" "observations-weather-raw" {
 
 }
 
-resource "aiven_kafka_topic" "observations-weather-flink" {
-  project = var.avn_project_id
-  service_name = aiven_kafka.tms-demo-kafka.service_name
-  topic_name = "observations.weather.flink"
-  partitions = 20
-  replication = 2
-  config {
-    retention_ms = 259200000
-    cleanup_policy = "delete"
-    min_insync_replicas = 1
-  }
-  depends_on = [
-    aiven_kafka.tms-demo-kafka
-  ]
-}
-
 resource "aiven_kafka_topic" "observations-weather-flink-avg" {
   project = var.avn_project_id
   service_name = aiven_kafka.tms-demo-kafka.service_name
@@ -40,8 +24,7 @@ resource "aiven_kafka_topic" "observations-weather-flink-avg" {
   partitions = 20
   replication = 2
   config {
-    retention_ms = 259200000
-    cleanup_policy = "delete"
+    cleanup_policy = "compact"
     min_insync_replicas = 1
   }
   depends_on = [
@@ -141,4 +124,3 @@ resource "aiven_kafka_topic" "sensors-weather" {
     aiven_kafka.tms-demo-kafka
   ]
 }
-
