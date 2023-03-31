@@ -1,7 +1,7 @@
 #!/bin/sh
 unamestr=$(uname)
 
-export INTEGRATION_ID=$(avn service integration-list tms-demo-kafka --project ssaily-demo --json| jq -r '.[] | select(.integration_type == "flink") | .service_integration_id')
+export INTEGRATION_ID=$(avn service integration-list tms-demo-kafka --project $1 --json| jq -r '.[] | select(.integration_type == "flink") | .service_integration_id')
 
 if [ -z "INTEGRATION_ID" ]; then
     echo "Flink Kafka integration missing. Please check Terraform output!"
