@@ -15,7 +15,8 @@ spec:
       labels:
         app: tms-demo-enrichment
     spec:
-      containers:      
+      terminationGracePeriodSeconds: 60
+      containers:
       - name: tms-demo-enrichment
         image: ssaily/tms-demo-processing:0.6.2
         env:
@@ -25,8 +26,8 @@ spec:
             value: "-javaagent:./jmx_prometheus_javaagent-0.18.0.jar=9091:kafka-client.yaml"
         envFrom:
           - secretRef:
-              name: kafka-secrets        
-          - secretRef: 
+              name: kafka-secrets
+          - secretRef:
               name: tms-service-endpoint
         volumeMounts:
         - mountPath: /etc/streams/tms-processing-cert
@@ -41,7 +42,7 @@ spec:
         imagePullPolicy: Always
         ports:
         - name: metrics
-          containerPort: 9091      
+          containerPort: 9091
       volumes:
         - name: cert-volume
           secret:
@@ -69,7 +70,8 @@ spec:
       labels:
         app: tms-demo-calculations
     spec:
-      containers:      
+      terminationGracePeriodSeconds: 60
+      containers:
       - name: tms-demo-calculations
         image: ssaily/tms-demo-processing:0.6.2
         env:
@@ -79,8 +81,8 @@ spec:
             value: "-javaagent:./jmx_prometheus_javaagent-0.18.0.jar=9091:kafka-client.yaml"
         envFrom:
           - secretRef:
-              name: kafka-secrets        
-          - secretRef: 
+              name: kafka-secrets
+          - secretRef:
               name: tms-service-endpoint
         volumeMounts:
         - mountPath: /etc/streams/tms-processing-cert
@@ -92,7 +94,7 @@ spec:
           requests:
             memory: 256Mi
             cpu: "100m"
-        imagePullPolicy: Always      
+        imagePullPolicy: Always
       volumes:
         - name: tms-processing-cert
           secret:
@@ -120,7 +122,8 @@ spec:
       labels:
         app: tms-demo-multivariate
     spec:
-      containers:      
+      terminationGracePeriodSeconds: 60
+      containers:
       - name: tms-demo-multivariate
         image: ssaily/tms-demo-processing:0.6.2
         env:
@@ -130,8 +133,8 @@ spec:
             value: "-javaagent:./jmx_prometheus_javaagent-0.18.0.jar=9091:kafka-client.yaml"
         envFrom:
           - secretRef:
-              name: kafka-secrets        
-          - secretRef: 
+              name: kafka-secrets
+          - secretRef:
               name: tms-service-endpoint
         volumeMounts:
         - mountPath: /etc/streams/tms-processing-cert
@@ -143,7 +146,7 @@ spec:
           requests:
             memory: 256Mi
             cpu: "100m"
-        imagePullPolicy: Always      
+        imagePullPolicy: Always
       volumes:
         - name: tms-processing-cert
           secret:
