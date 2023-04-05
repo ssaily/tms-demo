@@ -15,9 +15,11 @@ spec:
       labels:
         app: tms-demo-ingest
     spec:
+      nodeSelector:
+        cloud.google.com/compute-class: "Scale-Out"
       containers:
       - name: tms-demo-ingest
-        image: ssaily/tms-demo-ingest:0.2.2
+        image: ssaily/tms-demo-ingest:0.3.0
         securityContext:
           seccompProfile:
             type: Unconfined
@@ -38,6 +40,8 @@ spec:
             value: roadStationId
           - name: KAFKA_TOPIC
             value: observations.weather.raw
+          - name: MSG_MULTIPLIER
+            value: "1"
           - name: PYTHONUNBUFFERED
             value: "1"
         envFrom:
@@ -50,12 +54,12 @@ spec:
 #          name: mqtt-topic-map
 
         resources:
-          limits:
-            memory: 512Mi
-            cpu: "1"
           requests:
-            memory: 256Mi
-            cpu: "100m"
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "4Gi"
+            cpu: "4"
         imagePullPolicy: Always
       volumes:
 #        - name: mqtt-topic-map

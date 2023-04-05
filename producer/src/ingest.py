@@ -23,7 +23,7 @@ class AIOProducer:
 
     def _poll_loop(self):
         while not self._cancelled:
-            self._producer.poll(0.1)
+            self._producer.poll()
 
     def close(self):
         self._cancelled = True
@@ -63,6 +63,9 @@ class AIOProducer:
         self._producer.produce(topic, value, on_delivery=ack)
         return result
 
+    def flush(self):
+        self._producer.flush()
+
 metric_manager = ProducerMetricsManager()
 
 MQTT_HOST = os.getenv("MQTT_HOST")
@@ -70,6 +73,7 @@ MQTT_PORT = int(os.getenv("MQTT_PORT"))
 MQTT_TOPICS = os.getenv("MQTT_TOPICS")
 MSG_KEY = os.getenv("MSG_KEY")
 KAFKA_TOPIC = os.getenv("KAFKA_TOPIC")
+MSG_MULTIPLIER = int(os.getenv("MSG_MULTIPLIER"))
 
 CLIENT_ID = os.getenv("CLIENT_PREFIX") + "-" + str(binascii.hexlify(os.urandom(8)))
 
@@ -81,7 +85,8 @@ def connect_kafka() -> AIOProducer:
         'key.serializer': StringSerializer("utf8"),
         'value.serializer': StringSerializer("utf8"),
         'compression.type': 'gzip',
-        'linger.ms': 5000,
+        'linger.ms': 1,
+        'queue.buffering.max.messages': 500000,
         'security.protocol': 'SSL',
         'ssl.ca.location': '/etc/streams/tms-ingest-cert/ca.pem',
         'ssl.certificate.location': '/etc/streams/tms-ingest-cert/service.cert',
@@ -119,11 +124,16 @@ def subscribe(client: mqtt_client):
             topic = msg.topic.split("/")
             roadstation_id = topic[1]
             sensor_id = topic[2]
+            event_time = int(json_message["time"])
             json_message["sensorId"] = int(sensor_id)
 
-            aio_producer.produce(topic=KAFKA_TOPIC,
-                key=roadstation_id,
-                value=json.dumps(json_message))
+            for x in range(MSG_MULTIPLIER):
+                json_message["time"] = event_time
+                aio_producer.produce(topic=KAFKA_TOPIC,
+                    key=roadstation_id,
+                    value=json.dumps(json_message))
+                event_time += x
+                time.sleep(0.0001)
 
         except ValueError as err:
             print("Failed to decode message as JSON: {} {}".format(err,msg.payload.decode()))
