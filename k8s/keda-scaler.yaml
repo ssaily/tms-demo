@@ -39,28 +39,29 @@ metadata:
 spec:
   scaleTargetRef:
     name: tms-demo-enrichment
-  cooldownPeriod: 30
   minReplicaCount: 1
-  maxReplicaCount:  10
+  maxReplicaCount:  3
   advanced:
     horizontalPodAutoscalerConfig:
       behavior:
-        scaleDown:
-          stabilizationWindowSeconds: 30
+        scaleUp:
+          stabilizationWindowSeconds: 120
           policies:
             - type: Percent
               value: 50
-              periodSeconds: 30
+              periodSeconds: 60
+        scaleDown:
+          stabilizationWindowSeconds: 120
+          policies:
+            - type: Percent
+              value: 50
+              periodSeconds: 60
   triggers:
-    - type: kafka
+    - type: prometheus
       metadata:
-        bootstrapServersFromEnv: SASL_BOOTSTRAP_SERVERS
-        consumerGroup: tms-streams-demo-enrichment
-        topic: observations.weather.raw
-        lagThreshold: '5'
-        scaleToZeroOnInvalidOffset: 'true'
-      authenticationRef:
-        name: keda-trigger-auth-kafka-credential
+        serverAddress: "http://prometheus-k8s.monitoring:9090"
+        query: max by(topic) (kafka_consumer_fetch_manager_records_lag_avg{topic="observations_weather_raw", service="tms-demo-enrichment-svc"})
+        threshold: "1000"
 ---
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
@@ -70,25 +71,30 @@ metadata:
 spec:
   scaleTargetRef:
     name: tms-demo-calculations
-  cooldownPeriod: 30
-  minReplicaCount: 1
-  maxReplicaCount:  10
+  minReplicaCount: 0
+  maxReplicaCount:  3
   advanced:
     horizontalPodAutoscalerConfig:
       behavior:
-        scaleDown:
-          stabilizationWindowSeconds: 30
+        scaleUp:
+          stabilizationWindowSeconds: 120
           policies:
             - type: Percent
               value: 50
-              periodSeconds: 30
+              periodSeconds: 60
+        scaleDown:
+          stabilizationWindowSeconds: 120
+          policies:
+            - type: Percent
+              value: 50
+              periodSeconds: 60
   triggers:
     - type: kafka
       metadata:
         bootstrapServersFromEnv: SASL_BOOTSTRAP_SERVERS
         consumerGroup: tms-streams-demo-calculations
         topic: observations.weather.municipality
-        lagThreshold: '5'
+        lagThreshold: '1000'
         scaleToZeroOnInvalidOffset: 'true'
       authenticationRef:
         name: keda-trigger-auth-kafka-credential
@@ -101,25 +107,30 @@ metadata:
 spec:
   scaleTargetRef:
     name: tms-demo-multivariate
-  cooldownPeriod: 300
-  minReplicaCount: 1
-  maxReplicaCount:  10
+  minReplicaCount: 0
+  maxReplicaCount:  3
   advanced:
     horizontalPodAutoscalerConfig:
       behavior:
-        scaleDown:
-          stabilizationWindowSeconds: 30
+        scaleUp:
+          stabilizationWindowSeconds: 300
           policies:
             - type: Percent
               value: 50
-              periodSeconds: 30
+              periodSeconds: 60
+        scaleDown:
+          stabilizationWindowSeconds: 300
+          policies:
+            - type: Percent
+              value: 50
+              periodSeconds: 60
   triggers:
     - type: kafka
       metadata:
         bootstrapServersFromEnv: SASL_BOOTSTRAP_SERVERS
         consumerGroup: tms-streams-demo-multivariate
         topic: observations.weather.municipality
-        lagThreshold: '5'
+        lagThreshold: '1000'
         scaleToZeroOnInvalidOffset: 'true'
       authenticationRef:
         name: keda-trigger-auth-kafka-credential
