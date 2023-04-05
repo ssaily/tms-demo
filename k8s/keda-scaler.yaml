@@ -71,7 +71,7 @@ metadata:
 spec:
   scaleTargetRef:
     name: tms-demo-calculations
-  minReplicaCount: 0
+  minReplicaCount: 1
   maxReplicaCount:  3
   advanced:
     horizontalPodAutoscalerConfig:
@@ -89,15 +89,11 @@ spec:
               value: 50
               periodSeconds: 60
   triggers:
-    - type: kafka
+    - type: prometheus
       metadata:
-        bootstrapServersFromEnv: SASL_BOOTSTRAP_SERVERS
-        consumerGroup: tms-streams-demo-calculations
-        topic: observations.weather.municipality
-        lagThreshold: '1000'
-        scaleToZeroOnInvalidOffset: 'true'
-      authenticationRef:
-        name: keda-trigger-auth-kafka-credential
+        serverAddress: "http://prometheus-k8s.monitoring:9090"
+        query: max by(topic) (kafka_consumer_fetch_manager_records_lag_avg{topic="observations_weather_municipality", service="tms-demo-calculations-svc"})
+        threshold: "1000"
 ---
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
@@ -107,7 +103,7 @@ metadata:
 spec:
   scaleTargetRef:
     name: tms-demo-multivariate
-  minReplicaCount: 0
+  minReplicaCount: 1
   maxReplicaCount:  3
   advanced:
     horizontalPodAutoscalerConfig:
@@ -125,12 +121,8 @@ spec:
               value: 50
               periodSeconds: 60
   triggers:
-    - type: kafka
+    - type: prometheus
       metadata:
-        bootstrapServersFromEnv: SASL_BOOTSTRAP_SERVERS
-        consumerGroup: tms-streams-demo-multivariate
-        topic: observations.weather.municipality
-        lagThreshold: '1000'
-        scaleToZeroOnInvalidOffset: 'true'
-      authenticationRef:
-        name: keda-trigger-auth-kafka-credential
+        serverAddress: "http://prometheus-k8s.monitoring:9090"
+        query: max by(topic) (kafka_consumer_fetch_manager_records_lag_avg{topic="observations_weather_municipality", service="tms-demo-multivariate-svc"})
+        threshold: "1000"
