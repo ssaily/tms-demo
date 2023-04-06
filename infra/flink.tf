@@ -20,90 +20,33 @@ resource "aiven_service_integration" "flink_to_kafka" {
   source_service_name      = aiven_kafka.tms-demo-kafka.service_name
 }
 
-/*
-
-resource "aiven_flink_table" "source" {
-  project        = aiven_flink.flink.project
-  service_name   = aiven_flink.flink.service_name
-  integration_id = aiven_service_integration.flink_to_kafka.integration_id
-  table_name     = "source_observations"
-  kafka_topic    = aiven_kafka_topic.observations-weather-raw.topic_name
-  kafka_startup_mode = "earliest-offset"
-  kafka_key_format = "json"
-  kafka_key_fields = ["roadStationId"]
-  schema_sql     = <<EOF
-    `roadStationId` INT,
-    `sensorId` INT,
-    `value` FLOAT,
-    `time` TIMESTAMP,
-    WATERMARK FOR `time` AS `time` - INTERVAL '50' SECOND
-  EOF
-}
-
-resource "aiven_flink_table" "sink" {
-  project        = aiven_flink.flink.project
-  service_name   = aiven_flink.flink.service_name
-  integration_id = aiven_service_integration.flink_to_kafka.integration_id
-  table_name     = "sink_observations"
-  kafka_topic    = aiven_kafka_topic.observations-weather-flink.topic_name
-  kafka_key_format = "json"
-  kafka_key_fields = ["roadStationId"]
-  schema_sql     = <<EOF
-    `roadStationId` INT,
-    `sensorId` INT,
-    `value` FLOAT,
-    `time` TIMESTAMP
-  EOF
-}
-
-resource "aiven_flink_table" "avg_sink" {
-  project        = aiven_flink.flink.project
-  service_name   = aiven_flink.flink.service_name
-  integration_id = aiven_service_integration.flink_to_kafka.integration_id
-  table_name     = "avg_sink_observations"
-  kafka_topic    = aiven_kafka_topic.observations-weather-flink-avg.topic_name
-  kafka_key_format = "json"
-  kafka_key_fields = ["roadStationId"]
-  kafka_value_format = "avro"
-  schema_sql     = <<EOF
-    `roadStationId` INT,
-    `sensorId` INT,
-    `avgValue` FLOAT,
-    `msgCount` BIGINT,
-    `windowStart` TIMESTAMP(2),
-    `windowEnd` TIMESTAMP(2)
-  EOF
-}
-
-resource "aiven_flink_job" "filter_job" {
-  project      = aiven_flink.flink.project
+resource "aiven_flink_application" "weather" {
+  project = aiven_flink.flink.project
   service_name = aiven_flink.flink.service_name
-  job_name     = "filter_job"
-  table_ids = [
-    aiven_flink_table.source.table_id,
-    aiven_flink_table.sink.table_id
-  ]
-  statement = <<EOF
-    INSERT INTO ${aiven_flink_table.sink.table_name}
-    SELECT * FROM ${aiven_flink_table.source.table_name}
-    WHERE `sensorId` = 1
-  EOF
+  name = "weather"
 }
 
-resource "aiven_flink_job" "avg_job" {
-  project      = aiven_flink.flink.project
-  service_name = aiven_flink.flink.service_name
-  job_name     = "avg_job"
-  table_ids = [
-    aiven_flink_table.source.table_id,
-    aiven_flink_table.avg_sink.table_id
-  ]
-  statement = <<EOF
-    INSERT INTO ${aiven_flink_table.avg_sink.table_name}
-    SELECT roadStationId, sensorId, AVG(value) as avgValue, COUNT(*) msgCount, window_start, window_end
-    FROM TABLE( TUMBLE(TABLE ${aiven_flink_table.source.table_name},
-      DESCRIPTOR(time), INTERVAL '15' MINUTES))
-    GROUP BY window_start, window_end, GROUPING SETS ((roadStationId, sensorId))
-  EOF
+resource "aiven_flink_application_version" "demo-flink-application-v1" {
+  project                  = aiven_flink.flink.project
+  service_name             = aiven_flink.flink.service_name
+  application_id           = aiven_flink_application.weather.application_id
+  statement      = templatefile("../streamprocessing/flink/statement.sql", {} )
+
+  source {
+    create_table   = templatefile("../streamprocessing/flink/source_table.sql", {
+      sr_uri = "https://${data.aiven_service_component.schema_registry.host}:${data.aiven_service_component.schema_registry.port}",
+      sr_user_info = "${data.aiven_kafka_user.kafka_admin.username}:${data.aiven_kafka_user.kafka_admin.password}",
+      src_topic = aiven_kafka_topic.observations-weather-municipality.topic_name
+    } )
+    integration_id = aiven_service_integration.flink_to_kafka.integration_id
+  }
+
+  sink {
+    create_table   = templatefile("../streamprocessing/flink/sink_table.sql", {
+      sr_uri = "https://${data.aiven_service_component.schema_registry.host}:${data.aiven_service_component.schema_registry.port}",
+      sr_user_info = "${data.aiven_kafka_user.kafka_admin.username}:${data.aiven_kafka_user.kafka_admin.password}",
+      sink_topic = aiven_kafka_topic.observations-weather-flink-avg.topic_name
+    } )
+    integration_id = aiven_service_integration.flink_to_kafka.integration_id
+  }
 }
-*/

@@ -14,13 +14,13 @@ create table observations_sink (
 ) WITH (
     'connector' = 'upsert-kafka',
     'properties.bootstrap.servers' = '',
-    'topic' = 'observations.weather.flink-avg-avro',
+    'topic' = '${sink_topic}',
     'value.format' = 'avro-confluent',
-    'value.avro-confluent.url' = '${SCHEMA_REGISTRY_URL}',
+    'value.avro-confluent.url' = '${sr_uri}',
     'value.avro-confluent.basic-auth.credentials-source' = 'USER_INFO',
-    'value.avro-confluent.basic-auth.user-info' = '${SCHEMA_REGISTRY_CREDENTIALS}',
+    'value.avro-confluent.basic-auth.user-info' = '${sr_user_info}',
     'key.format' = 'avro-confluent',
-    'key.avro-confluent.url' = '${SCHEMA_REGISTRY_URL}',
+    'key.avro-confluent.url' = '${sr_uri}',
     'key.avro-confluent.basic-auth.credentials-source' = 'USER_INFO',
-    'key.avro-confluent.basic-auth.user-info' = '${SCHEMA_REGISTRY_CREDENTIALS}'
+    'key.avro-confluent.basic-auth.user-info' = '${sr_user_info}'
 )
