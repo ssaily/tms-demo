@@ -1,4 +1,4 @@
-# Data pipeline using Kafka and M3DB
+# Data pipeline with Kafka, Kafka Streams, Flink and M3DB
 
 Prerequisite
 - Active Aiven account and project (https://aiven.io/)
@@ -62,12 +62,6 @@ kubectl create -f namespace.yaml
 ### Deploy with Kustomize
 ```
 kubectl apply -k .
-```
-
-### Deploy Flink Application
-```
-cd <project-root>/streamprocessing/flink
-./deploy.sh <aiven-project-name>
 ```
 
 ### Deploy observability (Optional)
