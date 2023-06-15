@@ -2,7 +2,6 @@
 # Download Kafka service user certificates
 [ ! -d "k8s/secrets/aiven/ingest" ] && avn service user-kafka-java-creds --project $1 --username tms-ingest-user -p supersecret -d k8s/secrets/aiven/ingest tms-demo-kafka
 [ ! -d "k8s/secrets/aiven/processing" ] && avn service user-kafka-java-creds --project $1 --username tms-processing-user -p supersecret -d k8s/secrets/aiven/processing tms-demo-kafka
-[ ! -d "k8s/secrets/aiven/sink" ] && avn service user-kafka-java-creds --project $1 --username tms-sink-user -p supersecret -d k8s/secrets/aiven/sink tms-demo-kafka
 [ ! -d "k8s/secrets/aiven/admin" ] && avn service user-kafka-java-creds --project $1 --username avnadmin -p supersecret -d k8s/secrets/aiven/admin tms-demo-kafka
 
 # Generate pgpassfile for bootstrapping PostgreSQL tables
@@ -11,7 +10,6 @@ avn service get tms-demo-pg --json -v --project $1|jq -r '("host=" + .service_ur
 # Extract endpoints and secrets from Aiven services
 KAFKA_JSON=$(avn service get tms-demo-kafka --project $1 --json -v)
 M3_OBS_JSON=$(avn service get tms-demo-obs-m3db --project $1 --json -v)
-M3_IOT_JSON=$(avn service get tms-demo-iot-m3db --project $1 --json -v)
 OS_JSON=$(avn service get tms-demo-os --project $1 --json -v)
 
 M3_PROM_URI=$(jq -r '.components[] | select(.component == "m3coordinator_prom_remote_write") |"https://\(.host):\(.port)\(.path)"' <<< $M3_OBS_JSON)

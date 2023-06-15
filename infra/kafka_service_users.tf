@@ -20,13 +20,6 @@ resource "aiven_kafka_user" "tms-processing-user" {
   username = "tms-processing-user"
 }
 
-resource "aiven_kafka_user" "tms-sink-user" {
-  project = var.avn_project_id
-  service_name = aiven_kafka.tms-demo-kafka.service_name
-
-  username = "tms-sink-user"
-}
-
 resource "aiven_kafka_acl" "tms-ingest-acl" {
   project = var.avn_project_id
   service_name = aiven_kafka.tms-demo-kafka.service_name
@@ -78,24 +71,6 @@ resource "aiven_kafka_acl" "tms-processing-admin-acl-2" {
   permission = "admin"
   username = aiven_kafka_user.tms-processing-user.username
   topic = "tms-microservice-demo-*"
-}
-
-# adming access for KSQLDB topics
-resource "aiven_kafka_acl" "tms-processing-ksql-acl" {
-  project = var.avn_project_id
-  service_name = aiven_kafka.tms-demo-kafka.service_name
-  permission = "admin"
-  username = aiven_kafka_user.tms-processing-user.username
-  topic = "_confluent-ksql-tms_demo_ksqldb_*"
-}
-
-#read access for M3 sink service
-resource "aiven_kafka_acl" "tms-sink-acl" {
-  project = var.avn_project_id
-  service_name = aiven_kafka.tms-demo-kafka.service_name
-  permission = "read"
-  username = aiven_kafka_user.tms-sink-user.username
-  topic = "observations.weather.*"
 }
 
 resource "aiven_kafka_schema_registry_acl" "tms-sr-acl" {
