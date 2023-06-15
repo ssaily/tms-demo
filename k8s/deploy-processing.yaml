@@ -5,6 +5,8 @@ metadata:
   namespace: tms-demo
   labels:
     app: tms-demo-enrichment
+  annotations:
+    "sidecar.jaegertracing.io/inject": "true"
 spec:
   replicas: 1
   selector:
@@ -18,12 +20,24 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
       - name: tms-demo-enrichment
-        image: ssaily/tms-demo-processing:0.6.2
+        image: ssaily/tms-demo-processing:0.8.0
         env:
           - name: SPRING_PROFILES_ACTIVE
             value: enrichment
           - name: JAVA_OPTS
             value: "-javaagent:./jmx_prometheus_javaagent-0.18.0.jar=9091:kafka-client.yaml"
+          - name: TRACING_OPTS
+            value: " -javaagent:./opentelemetry-javaagent.jar -Dotel.traces.exporter=otlp -Dotel.metrics.exporter=none -Dotel.exporter.otlp.endpoint=http://simple-aiven-collector-headless.tms-demo.svc:4317/"
+          - name: OTEL_SERVICE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.labels['app']
+          - name: OTEL_INSTRUMENTATION_MESSAGING_EXPERIMENTAL_RECEIVE_TELEMETRY_ENABLED
+            value: "false"
+          - name: JAEGER_AGENT_HOST
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
         envFrom:
           - secretRef:
               name: kafka-secrets
@@ -34,10 +48,10 @@ spec:
           name: cert-volume
         resources:
           limits:
-            memory: 512Mi
-            cpu: "1"
+            memory: 1024Mi
+            cpu: "2"
           requests:
-            memory: 256Mi
+            memory: 512Mi
             cpu: "100m"
         imagePullPolicy: Always
         ports:
@@ -60,6 +74,8 @@ metadata:
   namespace: tms-demo
   labels:
     app: tms-demo-calculations
+  annotations:
+    "sidecar.jaegertracing.io/inject": "true"
 spec:
   replicas: 1
   selector:
@@ -73,12 +89,24 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
       - name: tms-demo-calculations
-        image: ssaily/tms-demo-processing:0.6.2
+        image: ssaily/tms-demo-processing:0.8.0
         env:
           - name: SPRING_PROFILES_ACTIVE
             value: calculations
           - name: JAVA_OPTS
             value: "-javaagent:./jmx_prometheus_javaagent-0.18.0.jar=9091:kafka-client.yaml"
+          - name: TRACING_OPTS
+            value: " -javaagent:./opentelemetry-javaagent.jar -Dotel.traces.exporter=otlp -Dotel.metrics.exporter=none -Dotel.exporter.otlp.endpoint=http://simple-aiven-collector-headless.tms-demo.svc:4317/"
+          - name: OTEL_SERVICE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.labels['app']
+          - name: OTEL_INSTRUMENTATION_MESSAGING_EXPERIMENTAL_RECEIVE_TELEMETRY_ENABLED
+            value: "false"
+          - name: JAEGER_AGENT_HOST
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
         envFrom:
           - secretRef:
               name: kafka-secrets
@@ -89,10 +117,10 @@ spec:
           name: tms-processing-cert
         resources:
           limits:
-            memory: 512Mi
-            cpu: "1"
+            memory: 1024Mi
+            cpu: "2"
           requests:
-            memory: 256Mi
+            memory: 512Mi
             cpu: "100m"
         imagePullPolicy: Always
       volumes:
@@ -112,6 +140,8 @@ metadata:
   namespace: tms-demo
   labels:
     app: tms-demo-multivariate
+  annotations:
+    "sidecar.jaegertracing.io/inject": "true"
 spec:
   replicas: 1
   selector:
@@ -125,12 +155,24 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
       - name: tms-demo-multivariate
-        image: ssaily/tms-demo-processing:0.6.2
+        image: ssaily/tms-demo-processing:0.8.0
         env:
           - name: SPRING_PROFILES_ACTIVE
             value: multivariate
           - name: JAVA_OPTS
             value: "-javaagent:./jmx_prometheus_javaagent-0.18.0.jar=9091:kafka-client.yaml"
+          - name: TRACING_OPTS
+            value: " -javaagent:./opentelemetry-javaagent.jar -Dotel.traces.exporter=otlp -Dotel.metrics.exporter=none -Dotel.exporter.otlp.endpoint=http://simple-aiven-collector-headless.tms-demo.svc:4317/"
+          - name: OTEL_SERVICE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.labels['app']
+          - name: OTEL_INSTRUMENTATION_MESSAGING_EXPERIMENTAL_RECEIVE_TELEMETRY_ENABLED
+            value: "false"
+          - name: JAEGER_AGENT_HOST
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
         envFrom:
           - secretRef:
               name: kafka-secrets
@@ -141,10 +183,10 @@ spec:
           name: tms-processing-cert
         resources:
           limits:
-            memory: 1024Mi
+            memory: 2048Mi
             cpu: "2"
           requests:
-            memory: 256Mi
+            memory: 1024Mi
             cpu: "100m"
         imagePullPolicy: Always
       volumes:

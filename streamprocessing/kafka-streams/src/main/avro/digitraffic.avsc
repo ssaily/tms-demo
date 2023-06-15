@@ -37,22 +37,6 @@
             "connect.name": "org.apache.kafka.connect.data.Timestamp"
         },
         {
-            "name": "municipality",
-            "type": [
-                "null",
-                "string"
-            ],
-            "default": null
-        },
-        {
-            "name": "province",
-            "type": [
-                "null",
-                "string"
-            ],
-            "default": null
-        },
-        {
             "name": "geohash",
             "type": [
                 "null",

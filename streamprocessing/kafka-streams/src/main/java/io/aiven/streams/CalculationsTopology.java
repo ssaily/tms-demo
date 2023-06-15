@@ -53,7 +53,7 @@ public class CalculationsTopology {
 
         Grouped<String, DigitrafficMessage> groupedMessage = Grouped.with(Serdes.String(), valueSerde);
 
-        KTable<Windowed<String>, DigitrafficAggregate> windows = streamsBuilder.stream("observations.weather.municipality",
+        KTable<Windowed<String>, DigitrafficAggregate> windows = streamsBuilder.stream("observations.weather.enriched",
             Consumed.with(Serdes.String(), valueSerde).withTimestampExtractor(new ObservationTimestampExtractor()))
         .filter((k, v) -> v.getSensorName() != null && v.getSensorName().contentEquals("ILMA"))
         .selectKey((key, value) -> key + "-" + String.valueOf(value.getSensorId()))

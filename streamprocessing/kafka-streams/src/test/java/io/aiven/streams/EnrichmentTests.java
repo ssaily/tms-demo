@@ -101,7 +101,7 @@ class EnrichmentTests {
             stationSerde.serializer());
 
         enrichedOutputTopic = testDriver.createOutputTopic(
-            "observations.weather.municipality",
+            "observations.weather.enriched",
             stringSerde.deserializer(),
             digitrafficSerde.deserializer());
     }
@@ -124,8 +124,6 @@ class EnrichmentTests {
         GenericRecord stationRecord = new GenericData.Record(stationSchema);
         stationRecord.put("roadstationid", 12016);
         stationRecord.put("name", "somename");
-        stationRecord.put("municipality", "Kärsämäki");
-        stationRecord.put("province", "Pohjois-Pohjanmaa");
         stationRecord.put("latitude", 64.006442);
         stationRecord.put("longitude", 25.755648);
 
@@ -150,8 +148,6 @@ class EnrichmentTests {
                 .setSensorName("KUITUVASTE_SUURI_1")
                 .setSensorValue(0.0f)
                 .setSensorUnit("###")
-                .setMunicipality("Kärsämäki")
-                .setProvince("Pohjois-Pohjanmaa")
                 .setGeohash("ue6k4h")
                 .setMeasuredTime(Instant.parse("2020-12-02T20:42:00Z").toEpochMilli()).build())));
 

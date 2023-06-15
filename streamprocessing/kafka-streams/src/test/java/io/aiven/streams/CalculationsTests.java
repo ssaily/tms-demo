@@ -81,7 +81,7 @@ class CalculationsTests {
             aggrSerde.deserializer());
 
         processedInputTopic = testDriver.createInputTopic(
-            "observations.weather.municipality",
+            "observations.weather.enriched",
             stringSerde.serializer(),
             digitrafficSerde.serializer());
 

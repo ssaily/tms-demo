@@ -26,7 +26,7 @@ resource "aiven_flink_application" "weather" {
   name = "weather"
 }
 
-resource "aiven_flink_application_version" "demo-flink-application-v1" {
+resource "aiven_flink_application_version" "demo-flink-application-v2" {
   project                  = aiven_flink.flink.project
   service_name             = aiven_flink.flink.service_name
   application_id           = aiven_flink_application.weather.application_id
@@ -36,7 +36,7 @@ resource "aiven_flink_application_version" "demo-flink-application-v1" {
     create_table   = templatefile("../streamprocessing/flink/source_table.sql", {
       sr_uri = "https://${data.aiven_service_component.schema_registry.host}:${data.aiven_service_component.schema_registry.port}",
       sr_user_info = "${data.aiven_kafka_user.kafka_admin.username}:${data.aiven_kafka_user.kafka_admin.password}",
-      src_topic = aiven_kafka_topic.observations-weather-municipality.topic_name
+      src_topic = aiven_kafka_topic.observations-weather-enriched.topic_name
     } )
     integration_id = aiven_service_integration.flink_to_kafka.integration_id
   }

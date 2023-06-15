@@ -48,10 +48,10 @@ resource "aiven_kafka_topic" "observations-weather-multivariate" {
   ]
 }
 
-resource "aiven_kafka_topic" "observations-weather-municipality" {
+resource "aiven_kafka_topic" "observations-weather-enriched" {
   project = var.avn_project_id
   service_name = aiven_kafka.tms-demo-kafka.service_name
-  topic_name = "observations.weather.municipality"
+  topic_name = "observations.weather.enriched"
   partitions = 20
   replication = 2
   config {

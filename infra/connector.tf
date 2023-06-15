@@ -98,7 +98,7 @@ resource "aiven_kafka_connector" "kafka-pg-cdc-stations-2" {
 resource "aiven_kafka_connector" "bq-sink" {
   count = "${var.bq_project != "" ? 1 : 0}"
   project = var.avn_project_id
-  service_name = aiven_kafka_connect.tms-demo-kafka-connect1.service_name
+  service_name = aiven_kafka_connect.tms-demo-kafka-connect2.service_name
   connector_name = "bq-sink"
   config = {
     "_aiven.restart.on.failure": "true",
@@ -111,6 +111,7 @@ resource "aiven_kafka_connector" "bq-sink" {
     "value.converter.basic.auth.credentials.source": "URL",
     "value.converter.schemas.enable": "true",
     "topics": aiven_kafka_topic.observations-weather-multivariate.topic_name,
+    # "topics.regex": "observations.weather.(?!avg-air-temperature)(?!flink)(?!flink-avg-avro)(?!enriched)(?!raw)"
     "project": var.bq_project,
     "keySource": "JSON",
     "keyfile": var.bq_key,
@@ -134,7 +135,7 @@ resource "aiven_kafka_connector" "bq-sink" {
     "transforms.tableChange.replacement": "observation"
   }
   depends_on = [
-    aiven_service_integration.tms-demo-connect-integr
+    aiven_service_integration.tms-demo-connect-integr-2
   ]
 }
 
@@ -192,7 +193,7 @@ resource "aiven_kafka_connector" "kafka-redis-sink" {
     "value.converter.schema.registry.url": local.schema_registry_uri,
     "value.converter.basic.auth.credentials.source": "URL",
     "value.converter.schemas.enable": "true",
-    "topics": aiven_kafka_topic.observations-weather-municipality.topic_name,
+    "topics": aiven_kafka_topic.observations-weather-enriched.topic_name,
     "connect.redis.host": aiven_redis.tms-demo-redis.service_host,
     "connect.redis.port": aiven_redis.tms-demo-redis.service_port,
     "connect.redis.password": aiven_redis.tms-demo-redis.service_password,
@@ -203,10 +204,10 @@ resource "aiven_kafka_connector" "kafka-redis-sink" {
     "transforms.insertField.topic.field":"rsid",
     "transforms.resetTopic.type": "org.apache.kafka.connect.transforms.RegexRouter",
     "transforms.resetTopic.regex": "(.*)"
-    "transforms.resetTopic.replacement": "${aiven_kafka_topic.observations-weather-municipality.topic_name}"
+    "transforms.resetTopic.replacement": "${aiven_kafka_topic.observations-weather-enriched.topic_name}"
     "connect.redis.kcql": <<EOF
       INSERT INTO cache- SELECT sensorName, sensorValue, sensorUnit, measuredTime
-      FROM ${aiven_kafka_topic.observations-weather-municipality.topic_name}
+      FROM ${aiven_kafka_topic.observations-weather-enriched.topic_name}
       PK rsid,sensorId
       EOF
   }

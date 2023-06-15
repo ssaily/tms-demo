@@ -51,17 +51,15 @@ public class CreateMultivariate {
 
         Grouped<String, DigitrafficMessage> groupedMessage = Grouped.with(Serdes.String(), valueSerde);
 
-        streamsBuilder.stream("observations.weather.municipality",
+        streamsBuilder.stream("observations.weather.enriched",
             Consumed.with(Serdes.String(), valueSerde).withTimestampExtractor(new ObservationTimestampExtractor()))
         .filter((k, v) -> v.getSensorName() != null)
         .groupByKey(groupedMessage)
         .windowedBy(SessionWindows.ofInactivityGapAndGrace(Duration.ofMinutes(1), Duration.ofMinutes(15)))
         .aggregate(
-            () -> new DigitrafficMessageMV(-1, 0L, "", "", "", new HashMap<>()) , /* initializer */
+            () -> new DigitrafficMessageMV(-1, 0L, "", new HashMap<>()) , /* initializer */
             (aggKey, newValue, aggValue) -> {
                 if (aggValue.getRoadStationId() < 0) {
-                    aggValue.setMunicipality(newValue.getMunicipality());
-                    aggValue.setProvince(newValue.getProvince());
                     aggValue.setGeohash(newValue.getGeohash());
                     aggValue.setRoadStationId(newValue.getRoadStationId());
                     aggValue.setMeasuredTime(newValue.getMeasuredTime());
