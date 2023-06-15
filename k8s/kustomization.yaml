@@ -10,6 +10,14 @@ resources:
 # - keda-scaler.yaml
 - klaw.yaml
 secretGenerator:
+- name: tms-ingest-cert
+  namespace: tms-demo
+  files:
+  - secrets/aiven/ingest/service.cert
+  - secrets/aiven/ingest/service.key
+  - secrets/aiven/ingest/ca.pem
+  - secrets/aiven/ingest/client.keystore.p12
+  - secrets/aiven/ingest/client.truststore.jks
 - name: tms-processing-cert
   namespace: tms-demo
   files:
