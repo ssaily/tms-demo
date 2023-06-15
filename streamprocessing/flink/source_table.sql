@@ -6,7 +6,6 @@ create table observations_source (
     sensorValue DOUBLE,
     sensorUnit VARCHAR,
     measuredTime TIMESTAMP(3),
-    municipality VARCHAR,
     WATERMARK FOR measuredTime AS measuredTime - INTERVAL '60' SECOND
 ) WITH (
     'connector' = 'kafka',

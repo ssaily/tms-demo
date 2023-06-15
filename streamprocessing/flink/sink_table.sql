@@ -7,7 +7,6 @@ create table observations_sink (
     sensorValueMax DOUBLE,
     sensorValueCount BIGINT,
     sensorUnit VARCHAR,
-    municipality VARCHAR,
     windowStart TIMESTAMP(2),
     windowEnd TIMESTAMP(2),
     PRIMARY KEY (roadStationId, sensorId, windowStart) NOT ENFORCED
