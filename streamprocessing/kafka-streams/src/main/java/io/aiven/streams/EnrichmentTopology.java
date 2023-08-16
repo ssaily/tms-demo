@@ -6,7 +6,6 @@ import java.util.Optional;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.avro.generic.GenericRecord;
-import org.apache.commons.text.StringEscapeUtils;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;

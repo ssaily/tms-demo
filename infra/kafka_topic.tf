@@ -9,12 +9,8 @@ resource "aiven_kafka_topic" "observations-weather-raw" {
   config {
     retention_ms = 259200000
     cleanup_policy = "delete"
-    min_insync_replicas = 1
+    min_insync_replicas = 2
   }
-  depends_on = [
-    aiven_kafka.tms-demo-kafka
-  ]
-
 }
 
 resource "aiven_kafka_topic" "observations-weather-flink-avg" {
@@ -25,11 +21,8 @@ resource "aiven_kafka_topic" "observations-weather-flink-avg" {
   replication = 2
   config {
     cleanup_policy = "compact"
-    min_insync_replicas = 1
+    min_insync_replicas = 2
   }
-  depends_on = [
-    aiven_kafka.tms-demo-kafka
-  ]
 }
 
 resource "aiven_kafka_topic" "observations-weather-multivariate" {
@@ -41,11 +34,8 @@ resource "aiven_kafka_topic" "observations-weather-multivariate" {
   config {
     retention_ms = 259200000
     cleanup_policy = "delete"
-    min_insync_replicas = 1
+    min_insync_replicas = 2
   }
-  depends_on = [
-    aiven_kafka.tms-demo-kafka
-  ]
 }
 
 resource "aiven_kafka_topic" "observations-weather-enriched" {
@@ -57,11 +47,8 @@ resource "aiven_kafka_topic" "observations-weather-enriched" {
   config {
     retention_ms = 1814400000
     cleanup_policy = "delete"
-    min_insync_replicas = 1
+    min_insync_replicas = 2
   }
-  depends_on = [
-    aiven_kafka.tms-demo-kafka
-  ]
 }
 
 resource "aiven_kafka_topic" "observations-weather-avg-air-temperature" {
@@ -73,11 +60,8 @@ resource "aiven_kafka_topic" "observations-weather-avg-air-temperature" {
   config {
     retention_ms = 1814400000
     cleanup_policy = "delete"
-    min_insync_replicas = 1
+    min_insync_replicas = 2
   }
-  depends_on = [
-    aiven_kafka.tms-demo-kafka
-  ]
 }
 
 resource "aiven_kafka_topic" "stations-weather" {
@@ -88,11 +72,8 @@ resource "aiven_kafka_topic" "stations-weather" {
   replication = 2
   config {
     cleanup_policy = "compact"
-    min_insync_replicas = 1
+    min_insync_replicas = 2
   }
-  depends_on = [
-    aiven_kafka.tms-demo-kafka
-  ]
 }
 
 resource "aiven_kafka_topic" "stations-weather-2" {
@@ -103,11 +84,8 @@ resource "aiven_kafka_topic" "stations-weather-2" {
   replication = 2
   config {
     cleanup_policy = "compact"
-    min_insync_replicas = 1
+    min_insync_replicas = 2
   }
-  depends_on = [
-    aiven_kafka.tms-demo-kafka
-  ]
 }
 
 resource "aiven_kafka_topic" "sensors-weather" {
@@ -118,9 +96,6 @@ resource "aiven_kafka_topic" "sensors-weather" {
   replication = 2
   config {
     cleanup_policy = "compact"
-    min_insync_replicas = 1
+    min_insync_replicas = 2
   }
-  depends_on = [
-    aiven_kafka.tms-demo-kafka
-  ]
 }

@@ -9,14 +9,12 @@ data "aiven_kafka_user" "kafka_admin" {
 resource "aiven_kafka_user" "tms-ingest-user" {
   project = var.avn_project_id
   service_name = aiven_kafka.tms-demo-kafka.service_name
-
   username = "tms-ingest-user"
 }
 
 resource "aiven_kafka_user" "tms-processing-user" {
   project = var.avn_project_id
   service_name = aiven_kafka.tms-demo-kafka.service_name
-
   username = "tms-processing-user"
 }
 

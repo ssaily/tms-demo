@@ -8,7 +8,6 @@ metadata:
   annotations:
     "sidecar.jaegertracing.io/inject": "true"
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: tms-demo-enrichment
@@ -20,7 +19,7 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
       - name: tms-demo-enrichment
-        image: ssaily/tms-demo-processing:0.8.0
+        image: ssaily/tms-demo-processing:0.9.2
         env:
           - name: SPRING_PROFILES_ACTIVE
             value: enrichment
@@ -52,11 +51,27 @@ spec:
             cpu: "2"
           requests:
             memory: 512Mi
-            cpu: "100m"
+            cpu: "1"
         imagePullPolicy: Always
         ports:
         - name: metrics
           containerPort: 9091
+        - name: health
+          containerPort: 8080
+        startupProbe:
+          httpGet:
+            path: /health
+            port: health
+          initialDelaySeconds: 120
+          periodSeconds: 10
+          timeoutSeconds: 2
+          failureThreshold: 20
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: health
+          failureThreshold: 2
+
       volumes:
         - name: cert-volume
           secret:
@@ -77,7 +92,6 @@ metadata:
   annotations:
     "sidecar.jaegertracing.io/inject": "true"
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: tms-demo-calculations
@@ -89,7 +103,7 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
       - name: tms-demo-calculations
-        image: ssaily/tms-demo-processing:0.8.0
+        image: ssaily/tms-demo-processing:0.9.2
         env:
           - name: SPRING_PROFILES_ACTIVE
             value: calculations
@@ -123,6 +137,24 @@ spec:
             memory: 512Mi
             cpu: "100m"
         imagePullPolicy: Always
+        ports:
+        - name: metrics
+          containerPort: 9091
+        - name: health
+          containerPort: 8080
+        startupProbe:
+          httpGet:
+            path: /health
+            port: health
+          initialDelaySeconds: 120
+          periodSeconds: 10
+          timeoutSeconds: 2
+          failureThreshold: 20
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: health
+          failureThreshold: 2
       volumes:
         - name: tms-processing-cert
           secret:
@@ -143,7 +175,6 @@ metadata:
   annotations:
     "sidecar.jaegertracing.io/inject": "true"
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: tms-demo-multivariate
@@ -155,7 +186,7 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
       - name: tms-demo-multivariate
-        image: ssaily/tms-demo-processing:0.8.0
+        image: ssaily/tms-demo-processing:0.9.2
         env:
           - name: SPRING_PROFILES_ACTIVE
             value: multivariate
@@ -189,6 +220,24 @@ spec:
             memory: 1024Mi
             cpu: "100m"
         imagePullPolicy: Always
+        ports:
+        - name: metrics
+          containerPort: 9091
+        - name: health
+          containerPort: 8080
+        startupProbe:
+          httpGet:
+            path: /health
+            port: health
+          initialDelaySeconds: 120
+          periodSeconds: 10
+          timeoutSeconds: 2
+          failureThreshold: 20
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: health
+          failureThreshold: 2
       volumes:
         - name: tms-processing-cert
           secret:
@@ -210,6 +259,8 @@ spec:
   ports:
     - name: metrics
       port: 9091
+      targetPort: 9091
+      protocol: TCP
   selector:
     app: tms-demo-enrichment
 ---

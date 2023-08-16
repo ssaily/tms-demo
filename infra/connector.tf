@@ -18,7 +18,7 @@ locals {
 
 resource "aiven_kafka_connector" "kafka-pg-cdc-stations" {
   project = var.avn_project_id
-  service_name = aiven_kafka_connect.tms-demo-kafka-connect1.service_name
+  service_name = aiven_kafka_connect.tms-demo-kafka-connect.service_name
   connector_name = "kafka-pg-cdc-stations"
 
   config = {
@@ -58,7 +58,7 @@ resource "aiven_kafka_connector" "kafka-pg-cdc-stations" {
 
 resource "aiven_kafka_connector" "kafka-pg-cdc-stations-2" {
   project = var.avn_project_id
-  service_name = aiven_kafka_connect.tms-demo-kafka-connect1.service_name
+  service_name = aiven_kafka_connect.tms-demo-kafka-connect.service_name
   connector_name = "kafka-pg-cdc-stations-2"
 
   config = {
@@ -98,7 +98,7 @@ resource "aiven_kafka_connector" "kafka-pg-cdc-stations-2" {
 resource "aiven_kafka_connector" "bq-sink" {
   count = "${var.bq_project != "" ? 1 : 0}"
   project = var.avn_project_id
-  service_name = aiven_kafka_connect.tms-demo-kafka-connect2.service_name
+  service_name = aiven_kafka_connect.tms-demo-kafka-connect.service_name
   connector_name = "bq-sink"
   config = {
     "_aiven.restart.on.failure": "true",
@@ -135,13 +135,13 @@ resource "aiven_kafka_connector" "bq-sink" {
     "transforms.tableChange.replacement": "observation"
   }
   depends_on = [
-    aiven_service_integration.tms-demo-connect-integr-2
+    aiven_service_integration.tms-demo-connect-integr
   ]
 }
 
 resource "aiven_kafka_connector" "kafka-pg-cdc-sensors" {
   project = var.avn_project_id
-  service_name = aiven_kafka_connect.tms-demo-kafka-connect1.service_name
+  service_name = aiven_kafka_connect.tms-demo-kafka-connect.service_name
   connector_name = "kafka-pg-cdc-sensors"
 
   config = {
@@ -181,7 +181,7 @@ resource "aiven_kafka_connector" "kafka-pg-cdc-sensors" {
 
 resource "aiven_kafka_connector" "kafka-redis-sink" {
   project = var.avn_project_id
-  service_name = aiven_kafka_connect.tms-demo-kafka-connect2.service_name
+  service_name = aiven_kafka_connect.tms-demo-kafka-connect.service_name
   connector_name = "kafka-redis-sink"
   config = {
     "name": "kafka-redis-sink",
@@ -212,6 +212,6 @@ resource "aiven_kafka_connector" "kafka-redis-sink" {
       EOF
   }
   depends_on = [
-    aiven_service_integration.tms-demo-connect-integr-2
+    aiven_service_integration.tms-demo-connect-integr
   ]
 }

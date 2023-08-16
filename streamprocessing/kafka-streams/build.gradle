@@ -1,12 +1,13 @@
 plugins {
-	id 'org.springframework.boot' version '3.0.1'
-	id 'io.spring.dependency-management' version '1.1.0'
 	id 'java'
-	id 'com.github.davidmc24.gradle.plugin.avro' version '1.5.0'
+	id 'org.springframework.boot' version '3.1.1'
+	id 'com.github.davidmc24.gradle.plugin.avro' version '1.7.1'
 }
 
+apply plugin: 'io.spring.dependency-management'
+
 group = 'io.aiven'
-version = '0.8.0-SNAPSHOT'
+version = '0.9.2-SNAPSHOT'
 sourceCompatibility = 17
 targetCompatibility = 17
 
@@ -29,10 +30,10 @@ dependencies {
 	implementation 'org.apache.avro:avro'
 	implementation 'org.apache.commons:commons-text:1.9'
 	implementation 'org.apache.commons:commons-math3:3.6.1'
-	implementation 'org.springframework.kafka:spring-kafka:3.0.1'
-	implementation 'org.springframework.boot:spring-boot-starter'
-	implementation 'org.apache.kafka:kafka-clients:3.3.1'
-	implementation 'org.apache.kafka:kafka-streams:3.3.1'
+	implementation 'org.springframework.kafka:spring-kafka:3.0.8'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.apache.kafka:kafka-clients:3.4.1'
+	implementation 'org.apache.kafka:kafka-streams:3.4.1'
 	implementation 'io.confluent:kafka-streams-avro-serde:7.3.1'
 	implementation 'ch.hsr:geohash:1.4.0'
 	testImplementation 'org.mockito:mockito-core'
@@ -43,7 +44,7 @@ dependencies {
 	testImplementation('org.springframework.boot:spring-boot-starter-test') {
 		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
 	}
-	testImplementation 'org.apache.kafka:kafka-streams-test-utils:3.3.1'
+	testImplementation 'org.apache.kafka:kafka-streams-test-utils:3.4.1'
 }
 
 test {

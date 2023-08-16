@@ -6,6 +6,9 @@ resource "aiven_clickhouse" "tms-demo-ch" {
   service_name            = "tms-demo-ch"
   maintenance_window_dow  = "monday"
   maintenance_window_time = "10:00:00"
+  depends_on = [
+    aiven_kafka_topic.observations-weather-raw
+  ]
 }
 
 resource "aiven_service_integration" "ch-kafka-integr" {

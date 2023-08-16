@@ -26,7 +26,7 @@ resource "aiven_flink_application" "weather" {
   name = "weather"
 }
 
-resource "aiven_flink_application_version" "demo-flink-application-v2" {
+resource "aiven_flink_application_version" "demo-flink-application" {
   project                  = aiven_flink.flink.project
   service_name             = aiven_flink.flink.service_name
   application_id           = aiven_flink_application.weather.application_id

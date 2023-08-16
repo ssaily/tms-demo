@@ -57,5 +57,4 @@ public class KafkaStreamsConfig {
 
         return kafkaStreams;
     }
-
 }

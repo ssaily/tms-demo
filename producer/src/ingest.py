@@ -10,20 +10,48 @@ import time
 import binascii
 from prometheus_kafka_producer.metrics_manager import ProducerMetricsManager
 from prometheus_client import start_http_server
+from opentelemetry import trace
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry import trace
+from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
+from opentelemetry.trace import Status, StatusCode, SpanKind
+from opentelemetry.sdk.resources import SERVICE_NAME, SERVICE_INSTANCE_ID, Resource
+from opentelemetry.semconv.trace import SpanAttributes
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.instrumentation.confluent_kafka import ConfluentKafkaInstrumentor
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
-aio_producer = None
+inst = ConfluentKafkaInstrumentor()
+
+# Resource can be required for some backends, e.g. Jaeger
+# If resource wouldn't be set - traces wouldn't appears in Jaeger
+resource = Resource(attributes={
+    "service.name": "tms-demo-ingest"
+})
+
+trace.set_tracer_provider(TracerProvider(resource=resource))
+
+otlp_exporter = OTLPSpanExporter(endpoint="http://simple-aiven-collector-headless.tms-demo.svc:4317", insecure=True)
+
+span_processor = BatchSpanProcessor(otlp_exporter)
+
+tracer_provider = trace.get_tracer_provider()
+tracer_provider.add_span_processor(span_processor)
+tracer = trace.get_tracer("tms-demo-ingest")
 
 class AIOProducer:
     def __init__(self, configs, loop=None):
         self._loop = loop or asyncio.get_event_loop()
-        self._producer = confluent_kafka.SerializingProducer(configs)
+        p = confluent_kafka.Producer(configs)
+        self._producer = inst.instrument_producer(p, tracer_provider)
         self._cancelled = False
         self._poll_thread = Thread(target=self._poll_loop)
         self._poll_thread.start()
+        print("New AIOProducer")
 
     def _poll_loop(self):
         while not self._cancelled:
-            self._producer.poll()
+            self._producer.poll(1)
 
     def close(self):
         self._cancelled = True
@@ -40,10 +68,10 @@ class AIOProducer:
                 self._loop.call_soon_threadsafe(result.set_exception, KafkaException(err))
             else:
                 self._loop.call_soon_threadsafe(result.set_result, msg)
-        self._producer.produce(topic, key, value, on_delivery=ack)
+        self._producer.produce(topic=topic, key=key, value=value, on_delivery=ack)
         return result
 
-    def produce2(self, topic, value, on_delivery):
+    def produce2(self, topic, key, value, on_delivery=None):
         """
         A produce method in which delivery notifications are made available
         via both the returned future and on_delivery callback (if specified).
@@ -60,11 +88,8 @@ class AIOProducer:
             if on_delivery:
                 self._loop.call_soon_threadsafe(
                     on_delivery, err, msg)
-        self._producer.produce(topic, value, on_delivery=ack)
+        self._producer.produce(topic=topic, key=key, value=value, on_delivery=ack)
         return result
-
-    def flush(self):
-        self._producer.flush()
 
 metric_manager = ProducerMetricsManager()
 
@@ -82,10 +107,10 @@ def connect_kafka() -> AIOProducer:
         'bootstrap.servers': os.getenv("BOOTSTRAP_SERVERS"),
         "statistics.interval.ms": 10000,
         'client.id': CLIENT_ID,
-        'key.serializer': StringSerializer("utf8"),
-        'value.serializer': StringSerializer("utf8"),
+        #'key.serializer': StringSerializer("utf8"),
+        #'value.serializer': StringSerializer("utf8"),
         'compression.type': 'gzip',
-        'linger.ms': 1,
+        'linger.ms': 5000,
         'queue.buffering.max.messages': 500000,
         'security.protocol': 'SSL',
         'ssl.ca.location': '/etc/streams/tms-ingest-cert/ca.pem',
@@ -96,7 +121,7 @@ def connect_kafka() -> AIOProducer:
     return AIOProducer(producer_config)
 
 
-def connect_mqtt() -> mqtt_client:
+def connect_mqtt(kafka_producer: AIOProducer) -> mqtt_client:
     print("Connecting client {}".format(CLIENT_ID))
     def on_connect(client, userdata, flags, rc):
         if rc == 0:
@@ -108,7 +133,7 @@ def connect_mqtt() -> mqtt_client:
     def on_disconnect(client, userdata, rc):
         print("Disconnected, return code {}\n".format(rc))
 
-    client = mqtt_client.Client(client_id = CLIENT_ID, transport="websockets")
+    client = mqtt_client.Client(client_id = CLIENT_ID, transport = "websockets", userdata = kafka_producer)
     client.on_disconnect = on_disconnect
     client.on_connect = on_connect
     client.username_pw_set(username=os.getenv("MQTT_USER"), password=os.getenv("MQTT_PASSWORD"))
@@ -117,8 +142,8 @@ def connect_mqtt() -> mqtt_client:
     return client
 
 def subscribe(client: mqtt_client):
+    @tracer.start_as_current_span("tms-demo-ingest_on_message", kind=SpanKind.SERVER, attributes={SpanAttributes.MESSAGING_PROTOCOL: "MQTT"})
     def on_message(client, userdata, msg):
-        global aio_producer
         try:
             json_message = json.loads(msg.payload.decode())
             topic = msg.topic.split("/")
@@ -128,12 +153,13 @@ def subscribe(client: mqtt_client):
             json_message["sensorId"] = int(sensor_id)
 
             for x in range(MSG_MULTIPLIER):
+                if x > 0:
+                    time.sleep(0.0001)
                 json_message["time"] = event_time
-                aio_producer.produce(topic=KAFKA_TOPIC,
+                userdata.produce(topic=KAFKA_TOPIC,
                     key=roadstation_id,
                     value=json.dumps(json_message))
                 event_time += x
-                time.sleep(0.0001)
 
         except ValueError as err:
             print("Failed to decode message as JSON: {} {}".format(err,msg.payload.decode()))
@@ -147,9 +173,8 @@ def subscribe(client: mqtt_client):
 
 
 def run():
-    global aio_producer
     aio_producer = connect_kafka()
-    client = connect_mqtt()
+    client = connect_mqtt(aio_producer)
     client.loop_forever()
     aio_producer.close()
 
