@@ -3,7 +3,7 @@ resource "aiven_kafka" "tms-demo-kafka" {
   project = var.avn_project_id
   cloud_name = var.cloud_name
   project_vpc_id = var.use_cloud_vpc ? data.aiven_project_vpc.demo-vpc[0].id : null
-  plan = "startup-2"
+  plan = "business-4"
   service_name = "tms-demo-kafka"
   maintenance_window_dow = "monday"
   maintenance_window_time = "10:00:00"
