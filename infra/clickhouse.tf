@@ -20,22 +20,38 @@ resource "aiven_service_integration" "ch-kafka-integr" {
   clickhouse_kafka_user_config {
     tables {
         name = "observations"
-        data_format = "JSONEachRow"
+        data_format = "AvroConfluent"
         group_name = "observations"
         topics {
-            name = aiven_kafka_topic.observations-weather-raw.topic_name
+            name = aiven_kafka_topic.observations-weather-enriched.topic_name
+        }
+        columns {
+            name = "roadStationId"
+            type = "UInt64"
         }
         columns {
             name = "sensorId"
             type = "UInt64"
         }
         columns {
-            name = "value"
+            name = "sensorName"
+            type = "String"
+        }
+        columns {
+            name = "sensorValue"
             type = "Float64"
         }
         columns {
-            name = "time"
-            type = "DateTime"
+            name = "sensorUnit"
+            type = "String"
+        }
+        columns {
+            name = "measuredTime"
+            type = "DateTime64(3)"
+        }
+        columns {
+            name = "geohash"
+            type = "String"
         }
     }
   }
