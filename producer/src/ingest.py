@@ -12,7 +12,6 @@ from prometheus_kafka_producer.metrics_manager import ProducerMetricsManager
 from prometheus_client import start_http_server
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from opentelemetry import trace
 from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
 from opentelemetry.trace import Status, StatusCode, SpanKind
 from opentelemetry.sdk.resources import SERVICE_NAME, SERVICE_INSTANCE_ID, Resource
@@ -107,6 +106,7 @@ def connect_kafka() -> AIOProducer:
         'bootstrap.servers': os.getenv("BOOTSTRAP_SERVERS"),
         "statistics.interval.ms": 10000,
         'client.id': CLIENT_ID,
+        'partitioner': 'murmur2_random',
         #'key.serializer': StringSerializer("utf8"),
         #'value.serializer': StringSerializer("utf8"),
         'compression.type': 'gzip',
