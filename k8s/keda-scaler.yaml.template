@@ -32,6 +32,20 @@ spec:
     key: ca.pem
 ---
 apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: keda-trigger-auth-prom-credential
+  namespace: tms-demo
+spec:
+  secretTargetRef:
+  - parameter: username
+    name: tms-service-endpoint
+    key: PROM_USER
+  - parameter: password
+    name: tms-service-endpoint
+    key: PROM_PASSWORD
+---
+apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
   name: tms-demo-enrichment-scaled
@@ -59,9 +73,14 @@ spec:
   triggers:
     - type: prometheus
       metadata:
-        serverAddress: "http://prometheus-k8s.monitoring:9090"
-        query: sum by(topic) (kafka_consumer_fetch_manager_records_lag{topic="observations_weather_raw", service="tms-demo-enrichment-svc"})
+        authModes: basic
+        username: "tms-processing-user"
+        serverAddress: $PROM_URL
+        query: max by (name) (avg_over_time(kafka_consumer_group_rep_lag{project='ssaily-demo',service='tms-demo-kafka', name='tms-streams-demo-enrichment'}[10m]))
+        # query: sum by(topic) (kafka_consumer_fetch_manager_records_lag{topic="observations_weather_raw", service="tms-demo-enrichment-svc"})
         threshold: "1000"
+      authenticationRef:
+        name: keda-trigger-auth-prom-credential
 ---
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
@@ -91,9 +110,14 @@ spec:
   triggers:
     - type: prometheus
       metadata:
-        serverAddress: "http://prometheus-k8s.monitoring:9090"
-        query: sum by(topic) (kafka_consumer_fetch_manager_records_lag{topic="observations_weather_enriched", service="tms-demo-calculations-svc"})
+        authModes: basic
+        username: "tms-processing-user"
+        serverAddress: $PROM_URL
+        query: max by (name) (avg_over_time(kafka_consumer_group_rep_lag{project='ssaily-demo',service='tms-demo-kafka', name='tms-streams-demo-calculations'}[10m]))
+        # query: sum by(topic) (kafka_consumer_fetch_manager_records_lag{topic="observations_weather_enriched", service="tms-demo-calculations-svc"})
         threshold: "1000"
+      authenticationRef:
+        name: keda-trigger-auth-prom-credential
 ---
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
@@ -123,6 +147,11 @@ spec:
   triggers:
     - type: prometheus
       metadata:
-        serverAddress: "http://prometheus-k8s.monitoring:9090"
-        query: sum by(topic) (kafka_consumer_fetch_manager_records_lag{topic="observations_weather_enriched", service="tms-demo-multivariate-svc"})
+        authModes: basic
+        username: "tms-processing-user"
+        serverAddress: $PROM_URL
+        query: max by (name) (avg_over_time(kafka_consumer_group_rep_lag{project='ssaily-demo',service='tms-demo-kafka', name='tms-streams-demo-multivariate'}[10m]))
+        # query: sum by(topic) (kafka_consumer_fetch_manager_records_lag{topic="observations_weather_enriched", service="tms-demo-multivariate-svc"})
         threshold: "1000"
+      authenticationRef:
+        name: keda-trigger-auth-prom-credential
