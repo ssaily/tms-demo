@@ -50,3 +50,34 @@ resource "aiven_flink_application_version" "demo-flink-application" {
     integration_id = aiven_service_integration.flink_to_kafka.integration_id
   }
 }
+
+resource "aiven_flink_application" "statistics" {
+  project = aiven_flink.flink.project
+  service_name = aiven_flink.flink.service_name
+  name = "statistics"
+}
+
+resource "aiven_flink_application_version" "stats-flink-application" {
+  project                  = aiven_flink.flink.project
+  service_name             = aiven_flink.flink.service_name
+  application_id           = aiven_flink_application.statistics.application_id
+  statement      = templatefile("../streamprocessing/flink/stats.sql", {} )
+
+  source {
+    create_table   = templatefile("../streamprocessing/flink/source_table.sql", {
+      sr_uri = "https://${data.aiven_service_component.schema_registry.host}:${data.aiven_service_component.schema_registry.port}",
+      sr_user_info = "${data.aiven_kafka_user.kafka_admin.username}:${data.aiven_kafka_user.kafka_admin.password}",
+      src_topic = aiven_kafka_topic.observations-weather-enriched.topic_name
+    } )
+    integration_id = aiven_service_integration.flink_to_kafka.integration_id
+  }
+
+  sink {
+    create_table   = templatefile("../streamprocessing/flink/stats_sink_table.sql", {
+      sr_uri = "https://${data.aiven_service_component.schema_registry.host}:${data.aiven_service_component.schema_registry.port}",
+      sr_user_info = "${data.aiven_kafka_user.kafka_admin.username}:${data.aiven_kafka_user.kafka_admin.password}",
+      sink_topic = aiven_kafka_topic.observations-weather-flink-stats.topic_name
+    } )
+    integration_id = aiven_service_integration.flink_to_kafka.integration_id
+  }
+}

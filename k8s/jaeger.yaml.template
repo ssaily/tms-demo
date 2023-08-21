@@ -1,0 +1,13 @@
+apiVersion: jaegertracing.io/v1
+kind: Jaeger
+metadata:
+  name: simple-aiven
+  namespace: tms-demo
+spec:
+  strategy: production
+  storage:
+    type: elasticsearch
+    options:
+      es:
+        server-urls: https://$OS_HOST:$OS_PORT
+    secretName: tms-service-endpoint

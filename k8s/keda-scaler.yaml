@@ -60,7 +60,7 @@ spec:
     - type: prometheus
       metadata:
         serverAddress: "http://prometheus-k8s.monitoring:9090"
-        query: max by(topic) (kafka_consumer_fetch_manager_records_lag_avg{topic="observations_weather_raw", service="tms-demo-enrichment-svc"})
+        query: sum by(topic) (kafka_consumer_fetch_manager_records_lag{topic="observations_weather_raw", service="tms-demo-enrichment-svc"})
         threshold: "1000"
 ---
 apiVersion: keda.sh/v1alpha1
@@ -92,7 +92,7 @@ spec:
     - type: prometheus
       metadata:
         serverAddress: "http://prometheus-k8s.monitoring:9090"
-        query: max by(topic) (kafka_consumer_fetch_manager_records_lag_avg{topic="observations_weather_enriched", service="tms-demo-calculations-svc"})
+        query: sum by(topic) (kafka_consumer_fetch_manager_records_lag{topic="observations_weather_enriched", service="tms-demo-calculations-svc"})
         threshold: "1000"
 ---
 apiVersion: keda.sh/v1alpha1
@@ -124,5 +124,5 @@ spec:
     - type: prometheus
       metadata:
         serverAddress: "http://prometheus-k8s.monitoring:9090"
-        query: max by(topic) (kafka_consumer_fetch_manager_records_lag_avg{topic="observations_weather_enriched", service="tms-demo-multivariate-svc"})
+        query: sum by(topic) (kafka_consumer_fetch_manager_records_lag{topic="observations_weather_enriched", service="tms-demo-multivariate-svc"})
         threshold: "1000"

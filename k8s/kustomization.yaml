@@ -5,6 +5,7 @@ configurations:
   - nameReference.yaml
 resources:
 - secrets.yaml
+- jaeger.yaml
 - deploy-ingest.yaml
 - deploy-processing.yaml
 - keda-scaler.yaml

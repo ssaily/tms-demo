@@ -25,11 +25,12 @@ KAFKA_SERVICE_URI=$(jq -r .service_uri <<< $KAFKA_JSON)
 KAFKA_SASL_URI=$(jq -r '.components[] | select(.component == "kafka" and .kafka_authentication_method == "sasl") |"\(.host):\(.port)"' <<< $KAFKA_JSON)
 KAFKA_SASL_PWD=$(jq -r '.users[] | select(.username == "tms-processing-user")|"\(.password)"' <<< $KAFKA_JSON)
 
-OS_HOST=$(jq -r '(.service_uri_params.host)' <<< $OS_JSON)
-OS_PORT=$(jq -r '(.service_uri_params.port)' <<< $OS_JSON)
+export OS_HOST=$(jq -r '(.service_uri_params.host)' <<< $OS_JSON)
+export OS_PORT=$(jq -r '(.service_uri_params.port)' <<< $OS_JSON)
 OS_USER=$(jq -r '(.service_uri_params.user)' <<< $OS_JSON)
 OS_PASSWORD=$(jq -r '(.service_uri_params.password)' <<< $OS_JSON)
 
+envsubst < k8s/jaeger.yaml.template > k8s/jaeger.yaml
 
 echo "SCHEMA_REGISTRY=$SCHEMA_REGISTRY_URI" > k8s/secrets/aiven/.env
 echo "M3_INFLUXDB_URL=$M3_INFLUXDB_URI" >> k8s/secrets/aiven/.env
@@ -42,6 +43,9 @@ echo "OPENSEARCH_HOST=$OS_HOST" >> k8s/secrets/aiven/.env
 echo "OPENSEARCH_PORT=$OS_PORT" >> k8s/secrets/aiven/.env
 echo "OPENSEARCH_USER=$OS_USER" >> k8s/secrets/aiven/.env
 echo "OPENSEARCH_PASSWORD=$OS_PASSWORD" >> k8s/secrets/aiven/.env
+echo "ES_USERNAME=$OS_USER" >> k8s/secrets/aiven/.env
+echo "ES_PASSWORD=$OS_PASSWORD" >> k8s/secrets/aiven/.env
+echo "ES_SERVER_URLS=https://$OS_HOST:$OS_PORT" >> k8s/secrets/aiven/.env
 echo "SASL_BOOTSTRAP_SERVERS=$KAFKA_SASL_URI" >> k8s/secrets/aiven/.env
 echo "SASL_PWD=$KAFKA_SASL_PWD" >> k8s/secrets/aiven/.env
 echo "DEV1_KLAW_SCHEMAREGISTRY_CREDENTIALS=$SCHEMA_REGISTRY_CREDENTIALS" > k8s/secrets/aiven/.klaw.env

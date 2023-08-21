@@ -25,6 +25,18 @@ resource "aiven_kafka_topic" "observations-weather-flink-avg" {
   }
 }
 
+resource "aiven_kafka_topic" "observations-weather-flink-stats" {
+  project = var.avn_project_id
+  service_name = aiven_kafka.tms-demo-kafka.service_name
+  topic_name = "observations.weather.flink-stats"
+  partitions = 20
+  replication = 2
+  config {
+    cleanup_policy = "compact"
+    min_insync_replicas = 2
+  }
+}
+
 resource "aiven_kafka_topic" "observations-weather-multivariate" {
   project = var.avn_project_id
   service_name = aiven_kafka.tms-demo-kafka.service_name

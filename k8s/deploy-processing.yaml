@@ -19,7 +19,7 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
       - name: tms-demo-enrichment
-        image: ssaily/tms-demo-processing:0.9.2
+        image: ssaily/tms-demo-processing:0.9.4
         env:
           - name: SPRING_PROFILES_ACTIVE
             value: enrichment
@@ -62,14 +62,23 @@ spec:
           httpGet:
             path: /health
             port: health
-          initialDelaySeconds: 120
+          initialDelaySeconds: 20
           periodSeconds: 10
           timeoutSeconds: 2
-          failureThreshold: 20
+          failureThreshold: 50
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: health
+          periodSeconds: 10
+          timeoutSeconds: 2
+          failureThreshold: 2
         livenessProbe:
           httpGet:
             path: /health
             port: health
+          periodSeconds: 10
+          timeoutSeconds: 2
           failureThreshold: 2
 
       volumes:
@@ -103,7 +112,7 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
       - name: tms-demo-calculations
-        image: ssaily/tms-demo-processing:0.9.2
+        image: ssaily/tms-demo-processing:0.9.4
         env:
           - name: SPRING_PROFILES_ACTIVE
             value: calculations
@@ -146,14 +155,23 @@ spec:
           httpGet:
             path: /health
             port: health
-          initialDelaySeconds: 120
+          initialDelaySeconds: 20
           periodSeconds: 10
           timeoutSeconds: 2
-          failureThreshold: 20
+          failureThreshold: 50
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: health
+          periodSeconds: 10
+          timeoutSeconds: 2
+          failureThreshold: 2
         livenessProbe:
           httpGet:
             path: /health
             port: health
+          periodSeconds: 10
+          timeoutSeconds: 2
           failureThreshold: 2
       volumes:
         - name: tms-processing-cert
@@ -186,7 +204,7 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
       - name: tms-demo-multivariate
-        image: ssaily/tms-demo-processing:0.9.2
+        image: ssaily/tms-demo-processing:0.9.4
         env:
           - name: SPRING_PROFILES_ACTIVE
             value: multivariate
@@ -229,14 +247,23 @@ spec:
           httpGet:
             path: /health
             port: health
-          initialDelaySeconds: 120
+          initialDelaySeconds: 20
           periodSeconds: 10
           timeoutSeconds: 2
-          failureThreshold: 20
+          failureThreshold: 50
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: health
+          periodSeconds: 10
+          timeoutSeconds: 2
+          failureThreshold: 2
         livenessProbe:
           httpGet:
             path: /health
             port: health
+          periodSeconds: 10
+          timeoutSeconds: 2
           failureThreshold: 2
       volumes:
         - name: tms-processing-cert

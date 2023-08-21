@@ -3,3 +3,7 @@ nameReference:
     fieldSpecs:
       - kind: TriggerAuthentication
         path: spec/secretTargetRef/name
+  - kind: Secret
+    fieldSpecs:
+      - kind: Jaeger
+        path: spec/storage/secretName
