@@ -1,7 +1,6 @@
 package io.aiven.streams;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,12 +21,12 @@ public class ProbeController {
     @GetMapping("/health")
     public ResponseEntity<String> health() {
         KafkaStreams.State appState = kafkaStreams.state();
+        logger.info("GET health: {} ", appState.name());
         ResponseEntity<String> response = null;
-        if (appState.equals(KafkaStreams.State.RUNNING)) {
+        if (appState.isRunningOrRebalancing()) {
             response = ResponseEntity.ok().build();
         } else {
             response = ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
-            logger.info("GET health: " + appState.name());
         }
 
         return response;

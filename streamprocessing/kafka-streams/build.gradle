@@ -7,7 +7,7 @@ plugins {
 apply plugin: 'io.spring.dependency-management'
 
 group = 'io.aiven'
-version = '0.9.2-SNAPSHOT'
+version = '0.9.4-SNAPSHOT'
 sourceCompatibility = 17
 targetCompatibility = 17
 
