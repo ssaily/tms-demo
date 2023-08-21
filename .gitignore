@@ -24,6 +24,7 @@ observability/prometheus/jsonnetfile.*
 
 ### Template output ###
 k8s/jaeger.yaml
+k8s/keda-scaler.yaml
 
 ### Secrets ###
 k8s/secrets/aiven/*
