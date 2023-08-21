@@ -76,7 +76,7 @@ spec:
         authModes: basic
         username: "tms-processing-user"
         serverAddress: $PROM_URL
-        query: max by (name) (avg_over_time(kafka_consumer_group_rep_lag{project='ssaily-demo',service='tms-demo-kafka', name='tms-streams-demo-enrichment'}[10m]))
+        query: max by (name) (avg_over_time(kafka_consumer_group_rep_lag{service='tms-demo-kafka', name='tms-streams-demo-enrichment'}[10m]))
         # query: sum by(topic) (kafka_consumer_fetch_manager_records_lag{topic="observations_weather_raw", service="tms-demo-enrichment-svc"})
         threshold: "1000"
       authenticationRef:
@@ -113,7 +113,7 @@ spec:
         authModes: basic
         username: "tms-processing-user"
         serverAddress: $PROM_URL
-        query: max by (name) (avg_over_time(kafka_consumer_group_rep_lag{project='ssaily-demo',service='tms-demo-kafka', name='tms-streams-demo-calculations'}[10m]))
+        query: max by (name) (avg_over_time(kafka_consumer_group_rep_lag{service='tms-demo-kafka', name='tms-streams-demo-calculations'}[10m]))
         # query: sum by(topic) (kafka_consumer_fetch_manager_records_lag{topic="observations_weather_enriched", service="tms-demo-calculations-svc"})
         threshold: "1000"
       authenticationRef:
@@ -150,7 +150,7 @@ spec:
         authModes: basic
         username: "tms-processing-user"
         serverAddress: $PROM_URL
-        query: max by (name) (avg_over_time(kafka_consumer_group_rep_lag{project='ssaily-demo',service='tms-demo-kafka', name='tms-streams-demo-multivariate'}[10m]))
+        query: max by (name) (avg_over_time(kafka_consumer_group_rep_lag{service='tms-demo-kafka', name='tms-streams-demo-multivariate'}[10m]))
         # query: sum by(topic) (kafka_consumer_fetch_manager_records_lag{topic="observations_weather_enriched", service="tms-demo-multivariate-svc"})
         threshold: "1000"
       authenticationRef:
