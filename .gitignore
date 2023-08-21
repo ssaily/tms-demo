@@ -22,6 +22,9 @@ observability/prometheus/jsonnetfile.*
 **/.ipynb_checkpoints
 **/.python-version
 
+### Template output ###
+k8s/jaeger.yaml
+
 ### Secrets ###
 k8s/secrets/aiven/*
 **/pgpassfile
