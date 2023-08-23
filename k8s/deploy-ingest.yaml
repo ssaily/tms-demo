@@ -19,7 +19,7 @@ spec:
         cloud.google.com/compute-class: "Scale-Out"
       containers:
       - name: tms-demo-ingest
-        image: ssaily/tms-demo-ingest:0.5.0
+        image: ssaily/tms-demo-ingest:0.5.1
         securityContext:
           seccompProfile:
             type: Unconfined
@@ -44,6 +44,8 @@ spec:
             value: "1"
           - name: PYTHONUNBUFFERED
             value: "1"
+          - name: "OTEL_COLLECTOR"
+            value: "http://simple-aiven-collector-headless.tms-demo.svc:4317"
         envFrom:
           - secretRef:
               name: tms-service-endpoint

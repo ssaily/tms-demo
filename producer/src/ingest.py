@@ -20,6 +20,16 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.instrumentation.confluent_kafka import ConfluentKafkaInstrumentor
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
+MQTT_HOST = os.getenv("MQTT_HOST")
+MQTT_PORT = int(os.getenv("MQTT_PORT"))
+MQTT_TOPICS = os.getenv("MQTT_TOPICS")
+MSG_KEY = os.getenv("MSG_KEY")
+KAFKA_TOPIC = os.getenv("KAFKA_TOPIC")
+MSG_MULTIPLIER = int(os.getenv("MSG_MULTIPLIER"))
+OTEL_COLLECTOR = os.getenv("OTEL_COLLECTOR")
+CLIENT_ID = os.getenv("CLIENT_PREFIX") + "-" + str(binascii.hexlify(os.urandom(8)))
+
+
 inst = ConfluentKafkaInstrumentor()
 
 # Resource can be required for some backends, e.g. Jaeger
@@ -30,7 +40,7 @@ resource = Resource(attributes={
 
 trace.set_tracer_provider(TracerProvider(resource=resource))
 
-otlp_exporter = OTLPSpanExporter(endpoint="http://simple-aiven-collector-headless.tms-demo.svc:4317", insecure=True)
+otlp_exporter = OTLPSpanExporter(endpoint=OTEL_COLLECTOR, insecure=True)
 
 span_processor = BatchSpanProcessor(otlp_exporter)
 
@@ -50,7 +60,7 @@ class AIOProducer:
 
     def _poll_loop(self):
         while not self._cancelled:
-            self._producer.poll(1)
+            self._producer.poll(0.1)
 
     def close(self):
         self._cancelled = True
@@ -91,15 +101,6 @@ class AIOProducer:
         return result
 
 metric_manager = ProducerMetricsManager()
-
-MQTT_HOST = os.getenv("MQTT_HOST")
-MQTT_PORT = int(os.getenv("MQTT_PORT"))
-MQTT_TOPICS = os.getenv("MQTT_TOPICS")
-MSG_KEY = os.getenv("MSG_KEY")
-KAFKA_TOPIC = os.getenv("KAFKA_TOPIC")
-MSG_MULTIPLIER = int(os.getenv("MSG_MULTIPLIER"))
-
-CLIENT_ID = os.getenv("CLIENT_PREFIX") + "-" + str(binascii.hexlify(os.urandom(8)))
 
 def connect_kafka() -> AIOProducer:
     producer_config = {
