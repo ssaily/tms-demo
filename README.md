@@ -66,5 +66,12 @@ kubectl create -f namespace.yaml
 kubectl apply -k .
 ```
 
+## View event trace data
+Jager UI provides user interface searching and visualiszing trace data. First forward Jeager port number 16686 to your host
+```
+kubectl -n tms-demo port-forward svc/simple-aiven-query 16686
+```
+Then you can open the localhost address http://localhost:16686 in your favourite Web browser. You will see the full path for observation event from receiving it as MQTT message and finally being processed by the Kafka Streams applications.
+
 ### Deploy observability (Optional)
 Follow instructions [here](observability/README.md)

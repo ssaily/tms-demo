@@ -8,7 +8,8 @@ This plan will create a bunch of services within your Aiven project
 - PostgreSQL database
 - Flink Job for processing observations
 - Topics, Users and ACLs for Kafka
-- M3 Time Series database
+- Clickhouse for storing weather observations
+- M3 Time Series database for Prometheus monitoring
 
 You should copy the ```secrets.tfvars.template``` file to ```secrets.tfvars``` and fill in your Aiven project name, token and cloud region. After that you can run
 
