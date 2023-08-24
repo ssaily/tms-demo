@@ -11,12 +11,16 @@ avn service get tms-demo-pg --json -v --project $1|jq -r '("host=" + .service_ur
 KAFKA_JSON=$(avn service get tms-demo-kafka --project $1 --json -v)
 M3_OBS_JSON=$(avn service get tms-demo-obs-m3db --project $1 --json -v)
 OS_JSON=$(avn service get tms-demo-os --project $1 --json -v)
+CH_JSON=$(avn service get tms-demo-ch --project $1 --json -v)
 
 export PROM_URL=$(jq -r '.components[] | select(.component == "m3coordinator") |"https://\(.host):\(.port)"' <<< $M3_OBS_JSON)
 M3_PROM_REMOTE_WRITE_URL=$(jq -r '.components[] | select(.component == "m3coordinator_prom_remote_write") |"https://\(.host):\(.port)\(.path)"' <<< $M3_OBS_JSON)
 M3_PROM_USER=$(jq -r '.users[] | select(.type == "primary") |"\(.username)"' <<< $M3_OBS_JSON)
 M3_PROM_PWD=$(jq -r '.users[] | select(.type == "primary") |"\(.password)"' <<< $M3_OBS_JSON)
 M3_INFLUXDB_URI=$(jq -r '"https://" + (.service_uri_params.host + ":" + .service_uri_params.port + "/api/v1/influxdb/write")' <<< $M3_IOT_JSON)
+CH_HTTPS_PORT=$(jq -r '.components[] | select(.component == "clickhouse_https") |"\(.port)"' <<< $CH_JSON)
+CH_HTTPS_HOST=$(jq -r '.components[] | select(.component == "clickhouse_https") |"\(.host)"' <<< $CH_JSON)
+CH_CREDENTIALS=$(jq -r '.service_uri_params.user + ":" + .service_uri_params.password' <<< $CH_JSON)
 
 SCHEMA_REGISTRY_HOST=$(jq -r '.components[] | select(.component == "schema_registry") |"\(.host):\(.port)"' <<< $KAFKA_JSON)
 SCHEMA_REGISTRY_URI=$(jq -r .connection_info.schema_registry_uri <<< $KAFKA_JSON)
@@ -52,6 +56,7 @@ echo "SASL_PWD=$KAFKA_SASL_PWD" >> k8s/secrets/aiven/.env
 echo "DEV1_KLAW_SCHEMAREGISTRY_CREDENTIALS=$SCHEMA_REGISTRY_CREDENTIALS" > k8s/secrets/aiven/.klaw.env
 echo "SCHEMA_REGISTRY_URL=https://$SCHEMA_REGISTRY_HOST" > k8s/secrets/aiven/.flink.env
 echo "SCHEMA_REGISTRY_CREDENTIALS=$SCHEMA_REGISTRY_CREDENTIALS" >> k8s/secrets/aiven/.flink.env
+echo "CH_URL=https://$CH_CREDENTIALS@$CH_HTTPS_HOST:$CH_HTTPS_PORT/?query=" > database/.ch.env
 echo
 
 echo "Generate truststore for Schema Registry CA (${SCHEMA_REGISTRY_HOST})"
