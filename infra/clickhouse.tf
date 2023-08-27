@@ -27,15 +27,15 @@ resource "aiven_service_integration" "ch-kafka-integr" {
         }
         columns {
             name = "roadStationId"
-            type = "UInt64"
+            type = "UInt16"
         }
         columns {
             name = "sensorId"
-            type = "UInt64"
+            type = "UInt8"
         }
         columns {
             name = "sensorName"
-            type = "String"
+            type = "LowCardinality(String)"
         }
         columns {
             name = "sensorValue"
@@ -43,11 +43,19 @@ resource "aiven_service_integration" "ch-kafka-integr" {
         }
         columns {
             name = "sensorUnit"
-            type = "String"
+            type = "LowCardinality(String)"
         }
         columns {
             name = "measuredTime"
             type = "DateTime64(3)"
+        }
+        columns {
+            name = "latitude"
+            type = "Float64"
+        }
+        columns {
+            name = "longitude"
+            type = "Float64"
         }
         columns {
             name = "geohash"
