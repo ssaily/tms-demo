@@ -12,6 +12,14 @@
             "type": "string"
         },
         {
+            "name": "latitude",
+            "type": "double"
+        },
+        {
+            "name": "longitude",
+            "type": "double"
+        },
+        {
             "name": "geohash",
             "type": "string"
         }

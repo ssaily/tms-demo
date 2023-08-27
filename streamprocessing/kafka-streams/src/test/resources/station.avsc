@@ -19,22 +19,6 @@
         "default": null
       },
       {
-        "name": "municipality",
-        "type": [
-          "null",
-          "string"
-        ],
-        "default": null
-      },
-      {
-        "name": "province",
-        "type": [
-          "null",
-          "string"
-        ],
-        "default": null
-      },
-      {
         "name": "latitude",
         "type": [
           "null",

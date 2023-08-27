@@ -56,6 +56,8 @@ public class EnrichmentTopology {
         streamsBuilder.table("pg-stations.public.weather_stations", Consumed.with(Serdes.String(), genericSerde))
         .mapValues((key, value) -> WeatherStation.newBuilder()
             .setRoadStationId((Integer)value.get("roadstationid"))
+            .setLatitude((Double)value.get("latitude"))
+            .setLongitude((Double)value.get("longitude"))
             .setGeohash(calculateGeohash(value))
             .setName("")
             .build()
@@ -76,6 +78,8 @@ public class EnrichmentTopology {
         .join(stationTable,
             (measurement, station) -> // ValueJoiner
                 DigitrafficMessage.newBuilder(measurement)
+                .setLatitude(station.getLatitude())
+                .setLongitude(station.getLongitude())
                 .setGeohash(station.getGeohash())
                 .build()
         )

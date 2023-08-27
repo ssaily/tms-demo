@@ -113,7 +113,7 @@ class EnrichmentTests {
     }
 
     @Test
-    public void shouldEnrichSensorAndMunicipality() throws IOException, RestClientException  {
+    public void shouldEnrichSensorDetails() throws IOException, RestClientException  {
 
         Path resourceDirectory = Paths.get("src","test","resources");
         String stationSchemaPath = resourceDirectory.toFile().getAbsolutePath() + "/station.avsc";
@@ -148,6 +148,8 @@ class EnrichmentTests {
                 .setSensorName("KUITUVASTE_SUURI_1")
                 .setSensorValue(0.0f)
                 .setSensorUnit("###")
+                .setLatitude(64.006442)
+                .setLongitude(25.755648)
                 .setGeohash("ue6k4h")
                 .setMeasuredTime(Instant.parse("2020-12-02T20:42:00Z").toEpochMilli()).build())));
 

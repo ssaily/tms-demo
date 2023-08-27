@@ -20,6 +20,7 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.instrumentation.confluent_kafka import ConfluentKafkaInstrumentor
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
+APP_NAME = os.getenv("APP_NAME")
 MQTT_HOST = os.getenv("MQTT_HOST")
 MQTT_PORT = int(os.getenv("MQTT_PORT"))
 MQTT_TOPICS = os.getenv("MQTT_TOPICS")
@@ -27,15 +28,14 @@ MSG_KEY = os.getenv("MSG_KEY")
 KAFKA_TOPIC = os.getenv("KAFKA_TOPIC")
 MSG_MULTIPLIER = int(os.getenv("MSG_MULTIPLIER"))
 OTEL_COLLECTOR = os.getenv("OTEL_COLLECTOR")
-CLIENT_ID = os.getenv("CLIENT_PREFIX") + "-" + str(binascii.hexlify(os.urandom(8)))
-
+CLIENT_ID = APP_NAME + "-" + str(binascii.hexlify(os.urandom(8)))
 
 inst = ConfluentKafkaInstrumentor()
 
 # Resource can be required for some backends, e.g. Jaeger
 # If resource wouldn't be set - traces wouldn't appears in Jaeger
 resource = Resource(attributes={
-    "service.name": "tms-demo-ingest"
+    "service.name": APP_NAME
 })
 
 trace.set_tracer_provider(TracerProvider(resource=resource))
@@ -46,7 +46,7 @@ span_processor = BatchSpanProcessor(otlp_exporter)
 
 tracer_provider = trace.get_tracer_provider()
 tracer_provider.add_span_processor(span_processor)
-tracer = trace.get_tracer("tms-demo-ingest")
+tracer = trace.get_tracer(APP_NAME)
 
 class AIOProducer:
     def __init__(self, configs, loop=None):
@@ -143,7 +143,7 @@ def connect_mqtt(kafka_producer: AIOProducer) -> mqtt_client:
     return client
 
 def subscribe(client: mqtt_client):
-    @tracer.start_as_current_span("tms-demo-ingest_on_message", kind=SpanKind.SERVER, attributes={SpanAttributes.MESSAGING_PROTOCOL: "MQTT"})
+    @tracer.start_as_current_span(APP_NAME + "_on_message", kind=SpanKind.SERVER, attributes={SpanAttributes.MESSAGING_PROTOCOL: "MQTT"})
     def on_message(client, userdata, msg):
         try:
             json_message = json.loads(msg.payload.decode())

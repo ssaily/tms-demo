@@ -111,3 +111,16 @@ resource "aiven_kafka_topic" "sensors-weather" {
     min_insync_replicas = 2
   }
 }
+
+resource "aiven_kafka_topic" "observations-traffic-raw" {
+  project = var.avn_project_id
+  service_name = aiven_kafka.tms-demo-kafka.service_name
+  topic_name = "observations.traffic.raw"
+  partitions = 20
+  replication = 2
+  config {
+    retention_ms = 259200000
+    cleanup_policy = "delete"
+    min_insync_replicas = 2
+  }
+}

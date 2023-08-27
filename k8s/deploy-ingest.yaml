@@ -1,31 +1,29 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tms-demo-ingest
+  name: tms-demo-weather-ingest
   namespace: tms-demo
   labels:
-    app: tms-demo-ingest
+    app: tms-demo-weather-ingest
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: tms-demo-ingest
+      app: tms-demo-weather-ingest
   template:
     metadata:
       labels:
-        app: tms-demo-ingest
+        app: tms-demo-weather-ingest
     spec:
       nodeSelector:
         cloud.google.com/compute-class: "Scale-Out"
       containers:
-      - name: tms-demo-ingest
-        image: ssaily/tms-demo-ingest:0.5.1
+      - name: ttms-demo-weather-ingest
+        image: ssaily/tms-demo-ingest:0.6.0
         securityContext:
           seccompProfile:
             type: Unconfined
         env:
-          - name: CLIENT_PREFIX
-            value: "weather-"
           - name: MQTT_USER
             value: digitraffic
           - name: MQTT_PASSWORD
@@ -46,6 +44,10 @@ spec:
             value: "1"
           - name: "OTEL_COLLECTOR"
             value: "http://simple-aiven-collector-headless.tms-demo.svc:4317"
+          - name: APP_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.labels['app']
         envFrom:
           - secretRef:
               name: tms-service-endpoint
@@ -81,10 +83,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: tms-demo-ingest-svc
+  name: tms-demo-weather-ingest-svc
   namespace: tms-demo
   labels:
-    app: tms-demo-ingest
+    app: tms-demo-weather-ingest
 spec:
   ports:
     - name: metrics
@@ -92,4 +94,102 @@ spec:
       targetPort: 9091
       protocol: TCP
   selector:
-    app: tms-demo-ingest
+    app: tms-demo-weather-ingest
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tms-demo-traffic-ingest
+  namespace: tms-demo
+  labels:
+    app: tms-demo-traffic-ingest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tms-demo-traffic-ingest
+  template:
+    metadata:
+      labels:
+        app: tms-demo-traffic-ingest
+    spec:
+      nodeSelector:
+        cloud.google.com/compute-class: "Scale-Out"
+      containers:
+      - name: tms-demo-traffic-ingest
+        image: ssaily/tms-demo-ingest:0.6.0
+        securityContext:
+          seccompProfile:
+            type: Unconfined
+        env:
+          - name: MQTT_USER
+            value: digitraffic
+          - name: MQTT_PASSWORD
+            value: digitrafficPassword
+          - name: MQTT_HOST
+            value: tie.digitraffic.fi
+          - name: MQTT_PORT
+            value: "443"
+          - name: MQTT_TOPICS
+            value: "tms-v2/+/+"
+          - name: MSG_KEY
+            value: roadStationId
+          - name: KAFKA_TOPIC
+            value: observations.traffic.raw
+          - name: MSG_MULTIPLIER
+            value: "1"
+          - name: PYTHONUNBUFFERED
+            value: "1"
+          - name: "OTEL_COLLECTOR"
+            value: "http://simple-aiven-collector-headless.tms-demo.svc:4317"
+          - name: APP_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.labels['app']
+        envFrom:
+          - secretRef:
+              name: tms-service-endpoint
+        volumeMounts:
+        - mountPath: /etc/streams/tms-ingest-cert
+          name: tms-ingest-cert
+#        - mountPath: /etc/streams
+#          name: mqtt-topic-map
+
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "4Gi"
+            cpu: "4"
+        imagePullPolicy: Always
+      volumes:
+#        - name: mqtt-topic-map
+#          configMap:
+#            name: mqtt-topic-map
+        - name: tms-ingest-cert
+          secret:
+            secretName: tms-ingest-cert
+            items:
+            - key: service.cert
+              path: service.cert
+            - key: service.key
+              path: service.key
+            - key: ca.pem
+              path: ca.pem
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tms-demo-traffic-ingest-svc
+  namespace: tms-demo
+  labels:
+    app: tms-demo-traffic-ingest
+spec:
+  ports:
+    - name: metrics
+      port: 9091
+      targetPort: 9091
+      protocol: TCP
+  selector:
+    app: tms-demo-traffic-ingest

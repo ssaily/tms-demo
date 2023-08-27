@@ -18,12 +18,20 @@ resource "aiven_kafka_user" "tms-processing-user" {
   username = "tms-processing-user"
 }
 
-resource "aiven_kafka_acl" "tms-ingest-acl" {
+resource "aiven_kafka_acl" "tms-ingest-weather-acl" {
   project = var.avn_project_id
   service_name = aiven_kafka.tms-demo-kafka.service_name
   permission = "write"
   username = aiven_kafka_user.tms-ingest-user.username
   topic = aiven_kafka_topic.observations-weather-raw.topic_name
+}
+
+resource "aiven_kafka_acl" "tms-ingest-traffic-acl" {
+  project = var.avn_project_id
+  service_name = aiven_kafka.tms-demo-kafka.service_name
+  permission = "write"
+  username = aiven_kafka_user.tms-ingest-user.username
+  topic = aiven_kafka_topic.observations-traffic-raw.topic_name
 }
 
 # read-write access for Kafka Streams topologies
