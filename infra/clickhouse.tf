@@ -29,6 +29,8 @@ resource "aiven_service_integration" "ch-kafka-integr" {
         name = "observations"
         data_format = "AvroConfluent"
         group_name = "observations"
+        # (number of CH nodes * num_consumers = total no.of members in consumer group)
+        num_consumers = 1
         topics {
             name = aiven_kafka_topic.observations-weather-enriched.topic_name
         }
