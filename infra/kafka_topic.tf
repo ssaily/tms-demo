@@ -88,6 +88,18 @@ resource "aiven_kafka_topic" "stations-weather" {
   }
 }
 
+resource "aiven_kafka_topic" "stations-traffic" {
+  project = var.avn_project_id
+  service_name = aiven_kafka.tms-demo-kafka.service_name
+  topic_name = "pg-stations.public.traffic_stations"
+  partitions = 20
+  replication = 2
+  config {
+    cleanup_policy = "compact"
+    min_insync_replicas = 2
+  }
+}
+
 resource "aiven_kafka_topic" "stations-weather-2" {
   project = var.avn_project_id
   service_name = aiven_kafka.tms-demo-kafka.service_name
@@ -104,6 +116,18 @@ resource "aiven_kafka_topic" "sensors-weather" {
   project = var.avn_project_id
   service_name = aiven_kafka.tms-demo-kafka.service_name
   topic_name = "pg-sensors.public.weather_sensors"
+  partitions = 20
+  replication = 2
+  config {
+    cleanup_policy = "compact"
+    min_insync_replicas = 2
+  }
+}
+
+resource "aiven_kafka_topic" "sensors-traffic" {
+  project = var.avn_project_id
+  service_name = aiven_kafka.tms-demo-kafka.service_name
+  topic_name = "pg-sensors.public.traffic_sensors"
   partitions = 20
   replication = 2
   config {
