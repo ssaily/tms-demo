@@ -71,6 +71,32 @@ resource "aiven_service_integration" "ch-kafka-integr" {
             type = "String"
         }
     }
+    tables {
+        name = "observations_multivariate"
+        data_format = "AvroConfluent"
+        group_name = "observations_multivariate"
+        # (number of CH nodes * num_consumers = total no.of members in consumer group)
+        num_consumers = 1
+        topics {
+            name = aiven_kafka_topic.observations-weather-multivariate.topic_name
+        }
+        columns {
+            name = "roadStationId"
+            type = "UInt16"
+        }
+        columns {
+            name = "measuredTime"
+            type = "DateTime"
+        }
+        columns {
+            name = "measurements"
+            type = "Map(LowCardinality(String), Float64)"
+        }
+        columns {
+            name = "geohash"
+            type = "String"
+        }
+    }
   }
 }
 
