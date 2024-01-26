@@ -18,6 +18,7 @@ package io.aiven.flink.tmsdemo;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,7 +54,7 @@ public final class AivenKafkaConnectorFactory {
         }
         final String integrationFileName = String.format("%s.json", integrationId);
         final File integrationJsonFile = Paths.get(avnCredentialsDir, integrationFileName).toFile();
-        return FileUtils.readFileToString(integrationJsonFile, "utf-8");
+        return FileUtils.readFileToString(integrationJsonFile, StandardCharsets.UTF_8);
     }
 
     private String determineSecurityProtocolOfIntegration(final String integrationJson) throws IOException {

@@ -25,6 +25,7 @@ import java.time.Duration;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
+import org.apache.flink.formats.json.JsonDeserializationSchema;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
@@ -74,14 +75,12 @@ public class DataStreamJob {
 
 	public void execute() throws IOException {
 
-        //final KafkaObservationSchema sourceSchema = new KafkaObservationSchema();
-        //final KafkaSinkSchema sinkSkchema = new KafkaSinkSchema("observations.weather.flink_jar");
-
+        JsonDeserializationSchema<Observation> sourceSchema = new JsonDeserializationSchema<>(Observation.class);
         final AivenKafkaConnector kafka = AivenKafkaConnectorFactory.INSTANCE.createAivenKafkaConnector(this.integrationId);
         final KafkaSource<Observation> kafkaSource =
-            kafka.createKafkaSourceForTopic("observations.weather.raw", this.consumerGroupId);
+            kafka.createJsonKafkaSource("observations.weather.raw", this.consumerGroupId, sourceSchema);
 
-        final KafkaSink<Observation> kafkaSink = kafka.createKafkaSink();
+        final KafkaSink<Observation> kafkaSink = kafka.createJsonKafkaSink("observations.weather.flink_jar");
         try (StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment()) {
             DataStream<Observation> stream = env.fromSource(kafkaSource, WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofMinutes(1)), "Raw observations");
             stream.sinkTo(kafkaSink);

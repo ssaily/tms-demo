@@ -2,16 +2,12 @@ package io.aiven.flink.tmsdemo;
 
 import java.util.Properties;
 
-import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
 import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchemaBuilder;
 
 import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
-import org.apache.flink.connector.kafka.source.reader.deserializer.KafkaRecordDeserializationSchema;
 import org.apache.flink.formats.json.JsonDeserializationSchema;
 import org.apache.flink.formats.json.JsonSerializationSchema;
-import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.flink.streaming.util.serialization.JSONKeyValueDeserializationSchema;
 import org.apache.kafka.common.config.SaslConfigs;
 import org.apache.kafka.common.config.SslConfigs;
 
@@ -38,26 +34,24 @@ public class AivenKafkaConnector {
 
     }
 
-    public KafkaSource<Observation> createKafkaSourceForTopic(String topic, String kafkaGroup) {
-
-        JsonDeserializationSchema<Observation> jsonFormat = new JsonDeserializationSchema<>(Observation.class);
-        return KafkaSource.<Observation>builder()
+    public <T> KafkaSource<T> createJsonKafkaSource(final String topic, final String kafkaGroup, final JsonDeserializationSchema<T> schema) {
+        return KafkaSource.<T>builder()
             .setBootstrapServers(this.bootstrapServers)
             .setTopics(topic)
             .setGroupId(kafkaGroup)
             .setProperties(kafkaProperties)
-            .setValueOnlyDeserializer(jsonFormat)
+            .setValueOnlyDeserializer(schema)
             .build();
 
     }
 
-    public KafkaSink<Observation> createKafkaSink() {
-        JsonSerializationSchema<Observation> jsonFormat = new JsonSerializationSchema<>();
-        return KafkaSink.<Observation>builder()
+    public <T> KafkaSink<T> createJsonKafkaSink(final String topic) {
+        JsonSerializationSchema<T> jsonFormat = new JsonSerializationSchema<>();
+        return KafkaSink.<T>builder()
             .setBootstrapServers(this.bootstrapServers)
             .setRecordSerializer(new KafkaRecordSerializationSchemaBuilder<>()
                 .setValueSerializationSchema(jsonFormat)
-                .setTopic("observations.weather.flink_jar")
+                .setTopic(topic)
                 .build())
             .build();
 
