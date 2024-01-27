@@ -2,12 +2,13 @@ package io.aiven.flink.tmsdemo;
 
 import java.util.Properties;
 
-import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchemaBuilder;
+import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
 
 import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
-import org.apache.flink.formats.json.JsonDeserializationSchema;
-import org.apache.flink.formats.json.JsonSerializationSchema;
+import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
+import org.apache.flink.connector.kafka.source.reader.deserializer.KafkaRecordDeserializationSchema;
 import org.apache.kafka.common.config.SaslConfigs;
 import org.apache.kafka.common.config.SslConfigs;
 
@@ -34,25 +35,22 @@ public class AivenKafkaConnector {
 
     }
 
-    public <T> KafkaSource<T> createJsonKafkaSource(final String topic, final String kafkaGroup, final JsonDeserializationSchema<T> schema) {
-        return KafkaSource.<T>builder()
+    public <K, V> KafkaSource<Tuple2<K, V>> createJsonKafkaSource(final String topic, final String kafkaGroup, final KafkaRecordDeserializationSchema<Tuple2<K, V>> schema) {
+        return KafkaSource.<Tuple2<K, V>>builder()
             .setBootstrapServers(this.bootstrapServers)
             .setTopics(topic)
             .setGroupId(kafkaGroup)
             .setProperties(kafkaProperties)
-            .setValueOnlyDeserializer(schema)
+            .setDeserializer(schema)
+            .setStartingOffsets(OffsetsInitializer.earliest())
             .build();
 
     }
 
-    public <T> KafkaSink<T> createJsonKafkaSink(final String topic) {
-        JsonSerializationSchema<T> jsonFormat = new JsonSerializationSchema<>();
-        return KafkaSink.<T>builder()
+    public <K, V> KafkaSink<Tuple2<K, V>> createJsonKafkaSink(KafkaRecordSerializationSchema<Tuple2<K, V>> schema) {
+        return KafkaSink.<Tuple2<K, V>>builder()
             .setBootstrapServers(this.bootstrapServers)
-            .setRecordSerializer(new KafkaRecordSerializationSchemaBuilder<>()
-                .setValueSerializationSchema(jsonFormat)
-                .setTopic(topic)
-                .build())
+            .setRecordSerializer(schema)
             .build();
 
     }

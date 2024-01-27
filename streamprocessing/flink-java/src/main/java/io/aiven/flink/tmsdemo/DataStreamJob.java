@@ -23,9 +23,9 @@ import java.nio.file.Path;
 import java.time.Duration;
 
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
-import org.apache.flink.formats.json.JsonDeserializationSchema;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
@@ -75,14 +75,19 @@ public class DataStreamJob {
 
 	public void execute() throws IOException {
 
-        JsonDeserializationSchema<Observation> sourceSchema = new JsonDeserializationSchema<>(Observation.class);
+        KafkaObservationSourceSchema sourceSchema = new KafkaObservationSourceSchema();
+        KafkaObservationSinkSchema sinkSchema = new KafkaObservationSinkSchema("observations.weather.flink_jar");
         final AivenKafkaConnector kafka = AivenKafkaConnectorFactory.INSTANCE.createAivenKafkaConnector(this.integrationId);
-        final KafkaSource<Observation> kafkaSource =
-            kafka.createJsonKafkaSource("observations.weather.raw", this.consumerGroupId, sourceSchema);
+        final KafkaSource<Tuple2<String, Observation>> kafkaSource =
+                kafka.createJsonKafkaSource("observations.weather.raw", this.consumerGroupId, sourceSchema);
 
-        final KafkaSink<Observation> kafkaSink = kafka.createJsonKafkaSink("observations.weather.flink_jar");
+        final KafkaSink<Tuple2<String, Observation>> kafkaSink =
+                kafka.createJsonKafkaSink(sinkSchema);
         try (StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment()) {
-            DataStream<Observation> stream = env.fromSource(kafkaSource, WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofMinutes(1)), "Raw observations");
+            env.enableCheckpointing(10000); // milliseconds
+            DataStream<Tuple2<String, Observation>> stream =
+                env.fromSource(kafkaSource,
+                        WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofMinutes(1)), "Raw observations");
             stream.sinkTo(kafkaSink);
             env.execute("DataStreamJob");
         } catch(Exception e) {
