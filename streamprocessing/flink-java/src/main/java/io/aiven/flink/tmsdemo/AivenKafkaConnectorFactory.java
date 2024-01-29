@@ -19,6 +19,7 @@ package io.aiven.flink.tmsdemo;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,9 +35,19 @@ public final class AivenKafkaConnectorFactory {
     protected static final Logger logger = LogManager.getLogger(AivenKafkaConnectorFactory.class.getName());
     public static final AivenKafkaConnectorFactory INSTANCE = new AivenKafkaConnectorFactory();
 
+    private AivenKafkaConnectorFactory() {}
+
     public AivenKafkaConnector createAivenKafkaConnector(final String integrationId) throws IOException {
         final String integrationJson = readIntegrationJsonFile(integrationId);
-        logger.debug(integrationJson);
+        return creaAivenKafkaConnector(integrationJson);
+
+    }
+
+    public AivenKafkaConnector createAivenKafkaConnector(final ConfigFiles configFiles) throws IOException {
+        return creaAivenKafkaConnector(configFiles.readKafkaConfig());
+    }
+
+    private AivenKafkaConnector creaAivenKafkaConnector(final String integrationJson) throws IOException {
         final String securityProtocol = determineSecurityProtocolOfIntegration(integrationJson);
         if ("SASL_SSL".equals(securityProtocol)) {
             return new AivenKafkaConnector(JsonMapper.readValue(integrationJson, KafkaSaslSslConfig.class));
