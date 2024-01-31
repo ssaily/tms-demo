@@ -1,0 +1,16 @@
+{
+    "security_protocol": "SASL_SSL",
+    "bootstrap_servers": "",
+    "sasl_ssl": {
+        "sasl_mechanism": "SCRAM-SHA-256",
+        "sasl_username": "",
+        "sasl_password": "",
+        "ssl_ca_cert": "",
+        "ssl_endpoint_identification_algorithm": ""
+    },
+    "schema_registry": {
+        "basic-auth.credentials-source": "USER_INFO",
+        "basic-auth.user-info": "",
+        "schema-registry.url": ""
+    }
+}

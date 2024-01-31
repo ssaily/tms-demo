@@ -4,3 +4,21 @@ To package your job for submission to Flink, use: 'gradle shadowJar'. Afterwards
 jar to use in the 'build/libs' folder.
 
 To run and test your application with an embedded instance of Flink use: 'gradle run'
+
+Program arguments:
+
+-i, --integration-id        Aiven Integration ID. Used when running on Aiven for Flink.
+                            Get Flink Kafka integration id bu running
+                            avn service integration-list tms-demo-kafka --project <project> \
+                            --json| jq -r '.[] | select(.integration_type == "flink")'
+
+-g, --consumer-group        Set Kafka Consumer Group name
+
+-c, --config-path           Load properties from this path for local Flink runner. Path must contain
+                            at least kafka.json file (see kafka.json.template)
+
+Example Aiven for Flink deployment arguments:
+--integration-id=11111111-2222-3333-4444-5555555555 --consumer-group=DataStreamTest
+
+Example local runner:
+gradle run --args="--consumer-group=DataStreamTest --config-path ."

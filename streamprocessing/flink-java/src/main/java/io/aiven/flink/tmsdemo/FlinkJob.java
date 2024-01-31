@@ -153,7 +153,7 @@ public class FlinkJob {
         consumerGroupName.setRequired(true);
         options.addOption(consumerGroupName);
 
-        Option configFile = new Option("c", "config-file", true, "Load properties from file and execute local job");
+        Option configFile = new Option("c", "config-path", true, "Load properties from this path and execute local job");
         configFile.setRequired(false);
         options.addOption(configFile);
 
