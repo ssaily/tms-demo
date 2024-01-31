@@ -9,7 +9,7 @@ Program arguments:
 
 -i, --integration-id        Aiven Integration ID. Used when running on Aiven for Flink.
                             Get Flink Kafka integration id bu running
-                            avn service integration-list tms-demo-kafka --project <project> \
+                            avn service integration-list <kafka-service> --project <project> \
                             --json| jq -r '.[] | select(.integration_type == "flink")'
 
 -g, --consumer-group        Set Kafka Consumer Group name
