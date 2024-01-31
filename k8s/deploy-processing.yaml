@@ -16,10 +16,12 @@ spec:
       labels:
         app: tms-demo-enrichment
     spec:
+      nodeSelector:
+        cloud.google.com/compute-class: "Scale-Out"
       terminationGracePeriodSeconds: 60
       containers:
       - name: tms-demo-enrichment
-        image: ssaily/tms-demo-processing:0.9.5
+        image: ssaily/tms-demo-processing:0.9.6
         env:
           - name: SPRING_PROFILES_ACTIVE
             value: enrichment
@@ -46,12 +48,12 @@ spec:
         - mountPath: /etc/streams/tms-processing-cert
           name: cert-volume
         resources:
-          limits:
-            memory: 1024Mi
-            cpu: "2"
           requests:
-            memory: 512Mi
-            cpu: "1"
+            memory: 1024Mi
+            cpu: "250m"
+          limits:
+            memory: 2024Mi
+            cpu: "500m"
         imagePullPolicy: Always
         ports:
         - name: metrics
@@ -109,10 +111,12 @@ spec:
       labels:
         app: tms-demo-calculations
     spec:
+      nodeSelector:
+        cloud.google.com/compute-class: "Scale-Out"
       terminationGracePeriodSeconds: 60
       containers:
       - name: tms-demo-calculations
-        image: ssaily/tms-demo-processing:0.9.5
+        image: ssaily/tms-demo-processing:0.9.6
         env:
           - name: SPRING_PROFILES_ACTIVE
             value: calculations
@@ -139,12 +143,12 @@ spec:
         - mountPath: /etc/streams/tms-processing-cert
           name: tms-processing-cert
         resources:
-          limits:
-            memory: 1024Mi
-            cpu: "2"
           requests:
-            memory: 512Mi
-            cpu: "100m"
+            memory: 1024Mi
+            cpu: "250m"
+          limits:
+            memory: 2024Mi
+            cpu: "500m"
         imagePullPolicy: Always
         ports:
         - name: metrics
@@ -201,10 +205,12 @@ spec:
       labels:
         app: tms-demo-multivariate
     spec:
+      nodeSelector:
+        cloud.google.com/compute-class: "Scale-Out"
       terminationGracePeriodSeconds: 60
       containers:
       - name: tms-demo-multivariate
-        image: ssaily/tms-demo-processing:0.9.5
+        image: ssaily/tms-demo-processing:0.9.6
         env:
           - name: SPRING_PROFILES_ACTIVE
             value: multivariate
@@ -231,12 +237,12 @@ spec:
         - mountPath: /etc/streams/tms-processing-cert
           name: tms-processing-cert
         resources:
-          limits:
-            memory: 2048Mi
-            cpu: "2"
           requests:
             memory: 1024Mi
-            cpu: "100m"
+            cpu: "250m"
+          limits:
+            memory: 2024Mi
+            cpu: "500m"
         imagePullPolicy: Always
         ports:
         - name: metrics

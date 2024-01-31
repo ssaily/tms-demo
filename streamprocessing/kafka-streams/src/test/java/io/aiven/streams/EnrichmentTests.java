@@ -146,7 +146,7 @@ class EnrichmentTests {
                 .setSensorId(132)
                 .setRoadStationId(12016)
                 .setSensorName("KUITUVASTE_SUURI_1")
-                .setSensorValue(0.0f)
+                .setSensorValue(Double.valueOf(0.0f))
                 .setSensorUnit("###")
                 .setLatitude(64.006442)
                 .setLongitude(25.755648)

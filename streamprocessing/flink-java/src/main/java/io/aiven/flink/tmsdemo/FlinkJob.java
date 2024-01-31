@@ -21,8 +21,6 @@ package io.aiven.flink.tmsdemo;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Duration;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.commons.cli.*;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
@@ -31,9 +29,7 @@ import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.table.api.EnvironmentSettings;
-import org.apache.flink.table.api.TableDescriptor;
-import org.apache.flink.table.api.TableEnvironment;
+import org.apache.flink.table.api.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -74,6 +70,7 @@ public class FlinkJob {
             throw new IllegalArgumentException("Wrong count of arguments");
         }
         dataStreamJob.executeDataStreamAPI();
+        //dataStreamJob.executeTableAPI();
 	}
 
 	public FlinkJob(final String integrationId, final String consumerGroupId) throws IOException
@@ -122,10 +119,26 @@ public class FlinkJob {
             .build();
 
         final TableEnvironment tEnv = TableEnvironment.create(settings);
+        Schema.Builder schemaBuilder = Schema.newBuilder();
 
-        final TableDescriptor sourceDescriptor = aivenKafka.createKafkaTableDescriptor();
+        final TableDescriptor sourceDescriptor =
+            aivenKafka
+                .initTableBuilder()
+                .option("scan.startup.mode", "earliest-offset")
+                .option("properties.group.id", "tabletest")
+                .schema(schemaBuilder.column("sensorId", DataTypes.INT().notNull())
+                    .column("name", DataTypes.STRING())
+                    .column("unit", DataTypes.STRING())
+                    .column("accuracy", DataTypes.SMALLINT())
+                    .primaryKey("sensorId")
+                    .build())
+                .option("topic", "pg-sensors-3.public.weather_sensors")
+                .format("debezium-avro-confluent")
+                .build();
 
-        tEnv.createTable("foo", sourceDescriptor);
+        tEnv.createTable("sensors", sourceDescriptor);
+        Table sensors = tEnv.from("sensors");
+        sensors.select($("sensorId"), $("name"), $("unit")).execute().print();
 
     }
 

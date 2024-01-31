@@ -99,7 +99,7 @@ class CalculationsTests {
             .setSensorId(1)
             .setRoadStationId(12016)
             .setSensorName("ILMA")
-            .setSensorValue(0.0f)
+            .setSensorValue(Double.valueOf(0.0f))
             .setSensorUnit("C")
             .setMeasuredTime(Instant.parse("2020-12-02T20:00:00Z").toEpochMilli()).build());
 
@@ -107,7 +107,7 @@ class CalculationsTests {
             .setSensorId(1)
             .setRoadStationId(12016)
             .setSensorName("ILMA")
-            .setSensorValue(1.0f)
+            .setSensorValue(Double.valueOf(1.0f))
             .setSensorUnit("C")
             .setMeasuredTime(Instant.parse("2020-12-02T20:59:00Z").toEpochMilli()).build());
 
@@ -116,7 +116,7 @@ class CalculationsTests {
             .setSensorId(1)
             .setRoadStationId(12016)
             .setSensorName("ILMA")
-            .setSensorValue(2.0f)
+            .setSensorValue(Double.valueOf(2.0f))
             .setSensorUnit("C")
             .setMeasuredTime(Instant.parse("2020-12-02T21:11:00Z").toEpochMilli()).build());
 
@@ -125,7 +125,7 @@ class CalculationsTests {
                 .setId(1)
                 .setRoadStationId(12016)
                 .setName("ILMA")
-                .setSensorValue(0.5f)
+                .setSensorValue(Double.valueOf(0.5f))
                 .setMeasuredTime(Instant.parse("2020-12-02T21:00:00Z").toEpochMilli()).build())));
 
     }

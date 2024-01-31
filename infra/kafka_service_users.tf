@@ -58,7 +58,7 @@ resource "aiven_kafka_acl" "tms-processing-sensors-acl" {
   service_name = aiven_kafka.tms-demo-kafka.service_name
   permission = "read"
   username = aiven_kafka_user.tms-processing-user.username
-  topic = "pg-sensors.public.*"
+  topic = "pg-sensors*"
 }
 
 # adming access for intermediate Kafka Streams topics (changelog)

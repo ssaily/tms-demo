@@ -22,8 +22,10 @@ public class AivenKafkaConnector {
 
     private final Properties kafkaProperties;
     private final String bootstrapServers;
+    private final KafkaSaslSslConfig kafkaSaslSslConfig;
 
     public AivenKafkaConnector(final KafkaSaslSslConfig kafkaSaslSslConfig) {
+        this.kafkaSaslSslConfig = kafkaSaslSslConfig;
         this.bootstrapServers = kafkaSaslSslConfig.getBootstrapServers();
         this.kafkaProperties = new Properties();
         this.kafkaProperties.setProperty(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, kafkaSaslSslConfig.getSecurityProtocol());
@@ -42,6 +44,7 @@ public class AivenKafkaConnector {
     }
 
     public AivenKafkaConnector(final KafkaPlainTextConfig plainTextConfig) {
+        this.kafkaSaslSslConfig = null;
         this.bootstrapServers = plainTextConfig.getBootstrapServers();
         this.kafkaProperties = new Properties();
 
@@ -68,10 +71,25 @@ public class AivenKafkaConnector {
 
     }
 
-    public final TableDescriptor createKafkaTableDescriptor() {
-        return TableDescriptor.forConnector("kafka")
-            .format("debezium-avro")
-            .build();
+    public final TableDescriptor.Builder initTableBuilder() {
+        TableDescriptor.Builder builder = TableDescriptor.forConnector("kafka")
+            .option("properties.bootstrap.servers", bootstrapServers);
+            kafkaProperties.forEach( (key, value) -> {
+                if (key instanceof String && value instanceof String)
+                    builder.option("properties."+(String)key, (String)value);
+                }
+            );
+
+            // schema registry FIXME
+
+            if (kafkaSaslSslConfig != null) {
+                builder.option("debezium-avro-confluent.basic-auth.credentials-source", kafkaSaslSslConfig.getSchemaRegistry().getCredentialsSsource())
+                    .option("debezium-avro-confluent.basic-auth.user-info", kafkaSaslSslConfig.getSchemaRegistry().getUserInfo())
+                    .option("debezium-avro-confluent.url", kafkaSaslSslConfig.getSchemaRegistry().getUrl());
+            }
+
+            logger.info("Table API builder options:\n {}", builder);
+            return builder;
     }
 
 }

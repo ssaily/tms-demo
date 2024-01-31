@@ -47,8 +47,20 @@ resource "aiven_service_integration" "ch-kafka-integr" {
             type = "LowCardinality(String)"
         }
         columns {
-            name = "sensorValue"
-            type = "Float64"
+            name = "sensorValue.string"
+            type = "Nullable(String)"
+        }
+        columns {
+            name = "sensorValue.double"
+            type = "Nullable(Float32)"
+        }
+        columns {
+            name = "sensorValue.boolean"
+            type = "Nullable(Bool)"
+        }
+        columns {
+            name = "sensorValue.int"
+            type = "Nullable(UInt16)"
         }
         columns {
             name = "sensorUnit"

@@ -19,9 +19,9 @@ ext {
 group = 'io.aiven.flink.tmsdemo'
 version = '0.1-SNAPSHOT'
 if (flinkVersionNew) {
-    mainClassName = 'io.aiven.flink.tmsdemo.DataStreamJob'
+    mainClassName = 'io.aiven.flink.tmsdemo.FlinkJob'
 } else {
-    mainClassName = 'io.aiven.flink.tmsdemo.StreamingJob'
+    mainClassName = 'io.aiven.flink.tmsdemo.FlinkJob'
 }
 description = """Flink Quickstart Job"""
 
@@ -41,6 +41,9 @@ repositories {
         mavenContent {
             snapshotsOnly()
         }
+    }
+    maven {
+        url "https://packages.confluent.io/maven"
     }
 }
 
@@ -82,12 +85,16 @@ dependencies {
     // Dependencies that should be part of the shadow jar, e.g.
     // connectors. These must be in the flinkShadowJar configuration!
     // --------------------------------------------------------------
-    //flinkShadowJar "org.apache.flink:flink-connector-kafka:${flinkVersion}"
-
-    //runtimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"
-    //runtimeOnly "org.apache.logging.log4j:log4j-api:${log4jVersion}"
-    //runtimeOnly "org.apache.logging.log4j:log4j-core:${log4jVersion}"
-
+    // flinkShadowJar "org.apache.flink:flink-connector-kafka:${flinkVersion}"
+    /*
+    runtimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"
+    runtimeOnly "org.apache.logging.log4j:log4j-api:${log4jVersion}"
+    runtimeOnly "org.apache.logging.log4j:log4j-core:${log4jVersion}"
+    runtimeOnly "org.apache.flink:flink-table-planner-loader:${flinkVersion}"
+    runtimeOnly "org.apache.flink:flink-table-runtime:${flinkVersion}"
+    runtimeOnly "org.apache.flink:flink-avro-confluent-registry:${flinkVersion}"
+    runtimeOnly "io.confluent:kafka-schema-registry-client:6.2.2"
+    */
     // Add test dependencies here.
     // testCompile "junit:junit:4.12"
 }
@@ -109,7 +116,7 @@ jar {
     manifest {
         attributes 'Built-By': System.getProperty('user.name'),
                 'Build-Jdk': System.getProperty('java.version'),
-                'Main-Class': "io.aiven.flink.tmsdemo.DataStreamJob"
+                'Main-Class': "io.aiven.flink.tmsdemo.FlinkJob"
     }
 }
 

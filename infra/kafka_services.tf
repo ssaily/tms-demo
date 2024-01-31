@@ -38,10 +38,6 @@ resource "aiven_kafka_connect" "tms-demo-kafka-connect" {
       consumer_isolation_level = "read_committed"
       scheduled_rebalance_max_delay_ms = 60000
     }
-
-    public_access {
-      kafka_connect = true
-    }
   }
 }
 

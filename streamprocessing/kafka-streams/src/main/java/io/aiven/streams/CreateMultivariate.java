@@ -65,7 +65,7 @@ public class CreateMultivariate {
                     aggValue.setMeasuredTime(newValue.getMeasuredTime());
                 }
                 Map<String, Double> m = aggValue.getMeasurements();
-                m.put(newValue.getSensorName(), newValue.getSensorValue());
+                m.put(newValue.getSensorName(), (Double)newValue.getSensorValue());
                 return aggValue;
             }, /* adder */
             (aggKey, leftAggValue, rightAggValue) -> {

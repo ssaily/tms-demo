@@ -27,6 +27,8 @@ public final class KafkaSaslSslConfig {
 
     private final String securityProtocol;
 
+    private final SchemaRegistryConfig schemaRegistryConfig;
+
     public static class KafkaSaslSslConfigSaslSsl {
         private final String saslMechanism;
 
@@ -78,14 +80,44 @@ public final class KafkaSaslSslConfig {
         }
     }
 
+    public static class SchemaRegistryConfig {
+        private final String authCredentialsSource;
+        private final String authUserInfo;
+        private final String schemaRegistryUrl;
+
+        private SchemaRegistryConfig(@JsonProperty("basic-auth.credentials-source") final String authCredentialsSource,
+            @JsonProperty("basic-auth.user-info") final String authUserInfo,
+            @JsonProperty("schema-registry.url") final String schemaRegistryUrl) {
+                this.authCredentialsSource = authCredentialsSource;
+                this.authUserInfo = authUserInfo;
+                this.schemaRegistryUrl = schemaRegistryUrl;
+            }
+        @JsonProperty("basic-auth.credentials-source")
+        public String getCredentialsSsource() {
+            return authCredentialsSource;
+        }
+
+        @JsonProperty("basic-auth.user-info")
+        public String getUserInfo() {
+            return authUserInfo;
+        }
+
+        @JsonProperty("schema-registry.url")
+        public String getUrl() {
+            return schemaRegistryUrl;
+        }
+    }
+
     public KafkaSaslSslConfig(@JsonProperty("bootstrap_servers") final String bootstrapServers,
             @JsonProperty("integration_type") final String integrationType,
             @JsonProperty("security_protocol") final String securityProtocol,
-            @JsonProperty("sasl_ssl") final KafkaSaslSslConfigSaslSsl saslSsl) {
+            @JsonProperty("sasl_ssl") final KafkaSaslSslConfigSaslSsl saslSsl,
+            @JsonProperty("schema_registry") final SchemaRegistryConfig schemaRegistryConfig) {
         this.bootstrapServers = bootstrapServers;
         this.integrationType = integrationType;
         this.securityProtocol = securityProtocol;
         this.saslSsl = saslSsl;
+        this.schemaRegistryConfig = schemaRegistryConfig;
     }
 
     @JsonProperty("bootstrap_servers")
@@ -106,5 +138,10 @@ public final class KafkaSaslSslConfig {
     @JsonProperty("sasl_ssl")
     public KafkaSaslSslConfigSaslSsl getSaslSsl() {
         return saslSsl;
+    }
+
+    @JsonProperty("schema_registry")
+    public SchemaRegistryConfig getSchemaRegistry() {
+        return schemaRegistryConfig;
     }
 }

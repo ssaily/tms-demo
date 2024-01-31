@@ -67,7 +67,7 @@ public class CalculationsTopology {
                     aggregate.setName(value.getSensorName());
                 }
                 aggregate.setCount(aggregate.getCount() + 1);
-                aggregate.setSum(aggregate.getSum() + value.getSensorValue());
+                aggregate.setSum(aggregate.getSum() + (Double)value.getSensorValue());
                 return aggregate;
             }, Materialized.with(Serdes.String(), aggrSerde))
         .suppress(Suppressed.untilWindowCloses(BufferConfig.unbounded()))

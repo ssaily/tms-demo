@@ -97,6 +97,42 @@ resource "aiven_kafka_connector" "kafka-pg-cdc-stations-2" {
   ]
 }
 
+resource "aiven_kafka_connector" "kafka-pg-cdc-sensors-2" {
+  project = var.avn_project_id
+  service_name = aiven_kafka_connect.tms-demo-kafka-connect.service_name
+  connector_name = "kafka-pg-cdc-sensors-2"
+
+  config = {
+    "_aiven.restart.on.failure": "true",
+    "key.converter" : "io.confluent.connect.avro.AvroConverter",
+    "key.converter.schema.registry.url": local.schema_registry_uri,
+    "key.converter.basic.auth.credentials.source": "URL",
+    "key.converter.schemas.enable": "true",
+    "value.converter": "io.confluent.connect.avro.AvroConverter",
+    "value.converter.schema.registry.url": local.schema_registry_uri,
+    "value.converter.basic.auth.credentials.source": "URL",
+    "value.converter.schemas.enable": "true",
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "name": "kafka-pg-cdc-sensors-2",
+    "slot.name": "sensor2_repl_slot",
+    "publication.name": "station_publication",
+    "snapshot.mode": "always",
+    "database.hostname": data.aiven_service_component.tms_pg.host,
+    "database.port": data.aiven_service_component.tms_pg.port,
+    "database.user": data.aiven_pg_user.pg_admin.username,
+    "database.password": data.aiven_pg_user.pg_admin.password,
+    "database.dbname": "defaultdb",
+    "database.server.name": "pg-sensors-2",
+    "table.whitelist": "public.weather_sensors",
+    "plugin.name": "pgoutput",
+    "database.sslmode": "require",
+    "include.schema.changes": "false"
+  }
+  depends_on = [
+    aiven_service_integration.tms-demo-connect-integr
+  ]
+}
+
 resource "aiven_kafka_connector" "bq-sink" {
   count = "${var.bq_project != "" ? 1 : 0}"
   project = var.avn_project_id
@@ -213,6 +249,38 @@ resource "aiven_kafka_connector" "kafka-redis-sink" {
       FROM ${aiven_kafka_topic.observations-weather-enriched.topic_name}
       PK rsid,sensorId
       EOF
+  }
+  depends_on = [
+    aiven_service_integration.tms-demo-connect-integr
+  ]
+}
+
+resource "aiven_kafka_connector" "s3-parquet-sink" {
+  count = "${var.aws_access_key_id != "" ? 1 : 0}"
+  project = var.avn_project_id
+  service_name = aiven_kafka_connect.tms-demo-kafka-connect.service_name
+  connector_name = "s3-parquet-sink"
+  config = {
+    "_aiven.restart.on.failure": "true",
+    "name": "s3-parquet-sink",
+    "connector.class": "io.aiven.kafka.connect.s3.AivenKafkaConnectS3SinkConnector",
+    "key.converter" : "org.apache.kafka.connect.storage.StringConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter": "io.confluent.connect.avro.AvroConverter",
+    "value.converter.schema.registry.url": local.schema_registry_uri,
+    "value.converter.basic.auth.credentials.source": "URL",
+    "value.converter.schemas.enable": "true",
+    "topics": aiven_kafka_topic.observations-weather-multivariate.topic_name,
+    "aws.access.key.id": var.aws_access_key_id,
+    "aws.secret.access.key": var.aws_secret_access_key,
+    "aws.s3.bucket.name": var.aws_s3_bucket_name,
+    "aws.s3.region": var.aws_s3_region,
+    "format.output.type": "parquet",
+    "file.name.template": "measurements/{{topic}}-part{{partition}}-off{{start_offset}}.parquet"
+    "errors.tolerance": "none",
+    "errors.log.enable": "true",
+    "errors.log.include.messages": "true",
+    "offset.flush.interval.ms": "10000"
   }
   depends_on = [
     aiven_service_integration.tms-demo-connect-integr
