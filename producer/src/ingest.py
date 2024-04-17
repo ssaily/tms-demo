@@ -112,6 +112,7 @@ def connect_kafka() -> AIOProducer:
         #'value.serializer': StringSerializer("utf8"),
         'compression.type': 'gzip',
         'linger.ms': 5000,
+        'acks': 1,
         'queue.buffering.max.messages': 500000,
         'security.protocol': 'SSL',
         'ssl.ca.location': '/etc/streams/tms-ingest-cert/ca.pem',

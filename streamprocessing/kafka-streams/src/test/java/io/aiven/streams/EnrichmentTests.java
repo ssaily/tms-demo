@@ -91,12 +91,12 @@ class EnrichmentTests {
             new JsonSerializer<>());
 
         stationInputTopic = testDriver.createInputTopic(
-            "pg-stations.public.weather_stations",
+            "tms.public.weather_stations",
             stringSerde.serializer(),
             stationSerde.serializer());
 
         sensorInputTopic = testDriver.createInputTopic(
-            "pg-sensors.public.weather_sensors",
+            "tms.public.weather_sensors",
             stringSerde.serializer(),
             stationSerde.serializer());
 

@@ -53,7 +53,7 @@ public class EnrichmentTopology {
 
         // Sourced weather stations from PostreSQL table
         KTable<String, WeatherStation> stationTable =
-        streamsBuilder.table("pg-stations.public.weather_stations", Consumed.with(Serdes.String(), genericSerde))
+        streamsBuilder.table("tms.public.weather_stations", Consumed.with(Serdes.String(), genericSerde))
         .mapValues((key, value) -> WeatherStation.newBuilder()
             .setRoadStationId((Integer)value.get("roadstationid"))
             .setLatitude((Double)value.get("latitude"))
@@ -67,7 +67,7 @@ public class EnrichmentTopology {
         // We are using GlobalKTable here because the sensor table has different primary key (sensorId)
 
         GlobalKTable<String, GenericRecord> sensorTable =
-        streamsBuilder.globalTable("pg-sensors.public.weather_sensors", Consumed.with(Serdes.String(), genericSerde));
+        streamsBuilder.globalTable("tms.public.weather_sensors", Consumed.with(Serdes.String(), genericSerde));
 
         KStream<String, JsonNode> jsonWeatherStream = streamsBuilder.stream("observations.weather.raw",
             Consumed.with(Serdes.String(), new JsonSerde<>(JsonNode.class)));

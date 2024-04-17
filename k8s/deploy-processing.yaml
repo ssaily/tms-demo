@@ -21,7 +21,7 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
       - name: tms-demo-enrichment
-        image: ssaily/tms-demo-processing:0.9.6
+        image: ssaily/tms-demo-processing:0.9.7
         env:
           - name: SPRING_PROFILES_ACTIVE
             value: enrichment
@@ -116,7 +116,7 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
       - name: tms-demo-calculations
-        image: ssaily/tms-demo-processing:0.9.6
+        image: ssaily/tms-demo-processing:0.9.7
         env:
           - name: SPRING_PROFILES_ACTIVE
             value: calculations
@@ -210,7 +210,7 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
       - name: tms-demo-multivariate
-        image: ssaily/tms-demo-processing:0.9.6
+        image: ssaily/tms-demo-processing:0.9.7
         env:
           - name: SPRING_PROFILES_ACTIVE
             value: multivariate

@@ -21,7 +21,15 @@
         },
         {
             "name": "sensorValue",
-            "type": "double"
+            "type": [
+                {
+                    "avro.java.string": "String",
+                    "type": "string"
+                },
+                "double",
+                "boolean",
+                "int"
+            ]
         },
         {
             "name": "sensorUnit",

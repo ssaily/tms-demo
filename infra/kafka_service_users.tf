@@ -49,7 +49,7 @@ resource "aiven_kafka_acl" "tms-processing-stations-acl" {
   service_name = aiven_kafka.tms-demo-kafka.service_name
   permission = "read"
   username = aiven_kafka_user.tms-processing-user.username
-  topic = "pg-stations.public.*"
+  topic = "tms.public.*"
 }
 
 # read access to PostgeSQL CDC topics
@@ -58,7 +58,7 @@ resource "aiven_kafka_acl" "tms-processing-sensors-acl" {
   service_name = aiven_kafka.tms-demo-kafka.service_name
   permission = "read"
   username = aiven_kafka_user.tms-processing-user.username
-  topic = "pg-sensors*"
+  topic = "tms2.public.*"
 }
 
 # adming access for intermediate Kafka Streams topics (changelog)
@@ -68,6 +68,15 @@ resource "aiven_kafka_acl" "tms-processing-admin-acl" {
   permission = "admin"
   username = aiven_kafka_user.tms-processing-user.username
   topic = "tms-streams-demo-*"
+}
+
+# adming access for DLQ
+resource "aiven_kafka_acl" "tms-processing-dlq-acl" {
+  project = var.avn_project_id
+  service_name = aiven_kafka.tms-demo-kafka.service_name
+  permission = "admin"
+  username = aiven_kafka_user.tms-processing-user.username
+  topic = "tms.dlq_sink"
 }
 
 # adming access for intermediate Kafka Streams topics (changelog)
