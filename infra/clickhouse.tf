@@ -15,7 +15,7 @@ resource "aiven_service_integration" "ch-obs-integr" {
   project                  = var.avn_project_id
   integration_type         = "metrics"
   source_service_name      = aiven_clickhouse.tms-demo-ch.service_name
-  destination_service_name = aiven_m3db.tms-demo-obs-m3db.service_name
+  destination_service_name = aiven_thanos.tms-demo-obs-thanos.service_name
 }
 
 resource "aiven_service_integration" "ch-kafka-integr" {

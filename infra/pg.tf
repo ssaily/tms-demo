@@ -10,7 +10,7 @@ resource "aiven_service_integration" "tms-demo-obs-pg-integr" {
   project = var.avn_project_id
   integration_type = "metrics"
   source_service_name = aiven_pg.tms-demo-pg.service_name
-  destination_service_name = aiven_m3db.tms-demo-obs-m3db.service_name
+  destination_service_name = aiven_thanos.tms-demo-obs-thanos.service_name
 }
 
 data "aiven_pg_user" "pg_admin" {

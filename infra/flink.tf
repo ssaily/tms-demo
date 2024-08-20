@@ -10,7 +10,7 @@ resource "aiven_service_integration" "tms-demo-obs-flink-integr" {
   project = aiven_flink.flink.project
   integration_type = "metrics"
   source_service_name = aiven_flink.flink.service_name
-  destination_service_name = aiven_m3db.tms-demo-obs-m3db.service_name
+  destination_service_name = aiven_thanos.tms-demo-obs-thanos.service_name
 }
 
 resource "aiven_service_integration" "flink_to_kafka" {

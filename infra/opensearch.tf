@@ -13,7 +13,7 @@ resource "aiven_service_integration" "tms-demo-obs-os-integr" {
   project = var.avn_project_id
   integration_type = "metrics"
   source_service_name = aiven_opensearch.tms-demo-os.service_name
-  destination_service_name = aiven_m3db.tms-demo-obs-m3db.service_name
+  destination_service_name = aiven_thanos.tms-demo-obs-thanos.service_name
 }
 
 # Opensearch user
