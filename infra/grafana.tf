@@ -11,16 +11,9 @@ resource "aiven_grafana" "tms-demo-grafana" {
   }
 }
 
-resource "aiven_service_integration" "tms-demo-grafana-datasource" {
-  project = var.avn_project_id
-  integration_type = "datasource"
-  source_service_name = aiven_grafana.tms-demo-grafana.service_name
-  destination_service_name = aiven_m3db.tms-demo-obs-m3db.service_name
-}
-
 resource "aiven_service_integration" "tms-demo-grafana-dashboard" {
   project = var.avn_project_id
   integration_type = "dashboard"
   source_service_name = aiven_grafana.tms-demo-grafana.service_name
-  destination_service_name = aiven_m3db.tms-demo-obs-m3db.service_name
+  destination_service_name = aiven_thanos.tms-demo-obs-thanos.service_name
 }
