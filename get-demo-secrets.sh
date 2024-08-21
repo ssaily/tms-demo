@@ -9,15 +9,14 @@ avn service get tms-demo-pg --json -v --project $1|jq -r '("host=" + .service_ur
 
 # Extract endpoints and secrets from Aiven services
 KAFKA_JSON=$(avn service get tms-demo-kafka --project $1 --json -v)
-M3_OBS_JSON=$(avn service get tms-demo-obs-m3db --project $1 --json -v)
+THANOS_OBS_JSON=$(avn service get tms-demo-obs-thanos --project $1 --json -v)
 OS_JSON=$(avn service get tms-demo-os --project $1 --json -v)
 CH_JSON=$(avn service get tms-demo-ch --project $1 --json -v)
 
-export PROM_URL=$(jq -r '.components[] | select(.component == "m3coordinator") |"https://\(.host):\(.port)"' <<< $M3_OBS_JSON)
-M3_PROM_REMOTE_WRITE_URL=$(jq -r '.components[] | select(.component == "m3coordinator_prom_remote_write") |"https://\(.host):\(.port)\(.path)"' <<< $M3_OBS_JSON)
-M3_PROM_USER=$(jq -r '.users[] | select(.type == "primary") |"\(.username)"' <<< $M3_OBS_JSON)
-M3_PROM_PWD=$(jq -r '.users[] | select(.type == "primary") |"\(.password)"' <<< $M3_OBS_JSON)
-M3_INFLUXDB_URI=$(jq -r '"https://" + (.service_uri_params.host + ":" + .service_uri_params.port + "/api/v1/influxdb/write")' <<< $M3_IOT_JSON)
+export PROM_URL=$(jq -r '.components[] | select(.component == "query_frontend") |"https://\(.host):\(.port)"' <<< $THANOS_OBS_JSON)
+THANOS_PROM_REMOTE_WRITE_URL=$(jq -r .connection_info.receiver_remote_write_uri <<< $THANOS_OBS_JSON)
+THANOS_PROM_USER=$(jq -r .service_uri_params.user <<< $THANOS_OBS_JSON)
+THANOS_PROM_PWD=$(jq -r .service_uri_params.password <<< $THANOS_OBS_JSON)
 CH_HTTPS_PORT=$(jq -r '.components[] | select(.component == "clickhouse_https") |"\(.port)"' <<< $CH_JSON)
 CH_HTTPS_HOST=$(jq -r '.components[] | select(.component == "clickhouse_https") |"\(.host)"' <<< $CH_JSON)
 CH_CREDENTIALS=$(jq -r '.service_uri_params.user + ":" + .service_uri_params.password' <<< $CH_JSON)
@@ -38,11 +37,11 @@ envsubst < k8s/jaeger.yaml.template > k8s/jaeger.yaml
 envsubst < k8s/keda-scaler.yaml.template > k8s/keda-scaler.yaml
 
 echo "SCHEMA_REGISTRY=$SCHEMA_REGISTRY_URI" > k8s/secrets/aiven/.env
-echo $M3_PROM_USER > k8s/secrets/aiven/m3_prom_user
-echo $M3_PROM_PWD > k8s/secrets/aiven/m3_prom_pwd
-echo $M3_PROM_REMOTE_WRITE_URL > k8s/secrets/aiven/m3_prom_uri
-echo "PROM_USER=$M3_PROM_USER" >> k8s/secrets/aiven/.env
-echo "PROM_PASSWORD=$M3_PROM_PWD" >> k8s/secrets/aiven/.env
+echo $THANOS_PROM_USER > k8s/secrets/aiven/thanos_prom_user
+echo $THANOS_PROM_PWD > k8s/secrets/aiven/thanos_prom_pwd
+echo $THANOS_PROM_REMOTE_WRITE_URL > k8s/secrets/aiven/thanos_remote_write_uri
+echo "PROM_USER=$THANOS_PROM_USER" >> k8s/secrets/aiven/.env
+echo "PROM_PASSWORD=$THANOS_PROM_PWD" >> k8s/secrets/aiven/.env
 echo "BOOTSTRAP_SERVERS=$KAFKA_SERVICE_URI" >> k8s/secrets/aiven/.env
 echo "OPENSEARCH_HOST=$OS_HOST" >> k8s/secrets/aiven/.env
 echo "OPENSEARCH_PORT=$OS_PORT" >> k8s/secrets/aiven/.env
