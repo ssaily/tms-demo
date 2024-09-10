@@ -1,4 +1,4 @@
-# Data pipeline with Kafka, Kafka Streams, Flink and M3DB
+# Data pipeline with Kafka, Kafka Streams, Flink and Thanos
 
 Prerequisites
 - Active Aiven account and project (https://aiven.io/)
